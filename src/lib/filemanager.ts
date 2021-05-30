@@ -11,7 +11,7 @@ export class FileManager {
 	}
 
 	static async _createDirectory(rootPath: string, directoryName: string): Promise<string> {
-		const fullPath: string = `${rootPath}/${directoryName}`
+		const fullPath = `${rootPath}/${directoryName}`
 
 		try {
 			if (!await stat(fullPath)) {
@@ -28,8 +28,8 @@ export class FileManager {
 	static async _makeBackup(
 		source: string,
 		name: string,
-		destination: string = '/tmp',
-		useDate: boolean = true,
+		destination = '/tmp',
+		useDate = true,
 		type: BackupType = BackupType.Monthly
 	): Promise<FileData> {
 		try {

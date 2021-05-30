@@ -1,6 +1,6 @@
 // Native JS pure function for calculating file hash using MD5 algorithm
-export const MD5 = function(d) {
-	var r = M(V(Y(X(d), 8 * d.length)))
+export const MD5 = function(d: string): string {
+	const r = M(V(Y(X(d), 8 * d.length)))
 	return r.toLowerCase()
 }
 function M(d) {
@@ -18,9 +18,9 @@ function V(d) {
 	return _
 }
 function Y(d, _) {
-	;(d[_ >> 5] |= 128 << (_ % 32)), (d[14 + (((_ + 64) >>> 9) << 4)] = _)
+	(d[_ >> 5] |= 128 << (_ % 32)), (d[14 + (((_ + 64) >>> 9) << 4)] = _)
 	for (var m = 1732584193, f = -271733879, r = -1732584194, i = 271733878, n = 0; n < d.length; n += 16) {
-		var h = m,
+		const h = m,
 			t = f,
 			g = r,
 			e = i
@@ -350,7 +350,7 @@ function Y(d, _) {
 			(r = safe_add(r, g)),
 			(i = safe_add(i, e))
 	}
-	return Array(m, f, r, i)
+	return [m, f, r, i]
 }
 function md5_cmn(d, _, m, f, r, i) {
 	return safe_add(bit_rol(safe_add(safe_add(_, d), safe_add(f, i)), r), m)
@@ -368,7 +368,7 @@ function md5_ii(d, _, m, f, r, i, n) {
 	return md5_cmn(m ^ (_ | ~f), d, _, r, i, n)
 }
 function safe_add(d, _) {
-	var m = (65535 & d) + (65535 & _)
+	const m = (65535 & d) + (65535 & _)
 	return (((d >> 16) + (_ >> 16) + (m >> 16)) << 16) | (65535 & m)
 }
 function bit_rol(d, _) {
