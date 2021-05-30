@@ -1,7 +1,7 @@
 import { join } from 'path/posix'
 import { cwd } from 'process'
 import { BackupType, RecordTable } from './common/types'
-import { DatabaseManager } from './data'
+import { DatabaseManager } from './lib/database'
 import { FileManager } from './lib/filemanager'
 import { v4 as uuid } from 'uuid'
 ;(async () => {

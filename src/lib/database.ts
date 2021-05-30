@@ -1,6 +1,6 @@
 import { JSONFile, Low } from 'lowdb'
 import { BackupRecord, BackupType, RecordTable, RecordType } from '../common/types'
-import { RecordNotFoundException } from '../lib/exceptions' 
+import { RecordNotFoundException } from './exceptions' 
 
 export class DatabaseManager {
 	constructor(private dbClient: Low<RecordType>, databasePath: string) {
