@@ -7,3 +7,28 @@ export enum BackupType {
 	SemiAnually = 'SemiAnually',
 	Anually = 'Anually'
 }
+
+export enum RecordTable {
+	BACKUPS,
+	ARCHIVE
+}
+
+export type FileData = {
+	fullPath: string
+	byteLength: number
+	md5sum: string
+}
+
+export type BackupRecord = {
+	id: string
+	name: string
+	size: number
+	checksum: string
+	date: string
+	type: BackupType
+}
+
+export type RecordType = {
+	backups: BackupRecord[]
+	archive: BackupRecord[]
+}
