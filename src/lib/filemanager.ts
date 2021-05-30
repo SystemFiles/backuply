@@ -1,12 +1,14 @@
 import { readFile } from 'fs-extra'
-import { mkdir, stat, writeFile } from 'fs/promises'
-import { promisify } from 'util'
+import { mkdir, stat } from 'fs/promises'
 import * as tar from 'tar'
-import * as fstream from 'fstream'
-import { gzip } from 'zlib'
 import { createWriteStream } from 'fs'
+import { BackupType } from '../common/types'
 
 export class FileManager {
+	static async _rotateBackups(): Promise<void> {
+		// TODO
+	}
+
 	static async _createDirectory(rootPath: string, directoryName: string): Promise<string> {
 		const fullPath: string = `${rootPath}/${directoryName}`
 
@@ -14,7 +16,7 @@ export class FileManager {
 			if (!await stat(fullPath)) {
 				return mkdir(fullPath, { recursive: true, mode: '755' })
 			} else {
-				console.log(`${rootPath}/${directoryName} already exists...`)
+				console.log(`Backup directory, ${rootPath}/${directoryName}, already exists ... skipping create.`)
 				return fullPath
 			}
 		} catch (err) {
@@ -23,15 +25,16 @@ export class FileManager {
 	}
 
 	static async _makeBackup(
-		rootPath: string,
+		source: string,
 		name: string,
+		destination: string = '/tmp',
 		useDate: boolean = true,
-		outPath: string = '/tmp'
+		type: BackupType = BackupType.Monthly
 	): Promise<string> {
 		try {
 			const generatedFileName = useDate
-				? `${outPath}/${name}-${new Date().toISOString()}.zip`
-				: `${outPath}/${name}.zip`
+				? `${destination}/${name}-${type.toString().toLowerCase()}-${new Date().toISOString()}.tar.gz`
+				: `${destination}/${name}.tar.gz`
 
 			tar
 				.c(
@@ -40,7 +43,7 @@ export class FileManager {
 						preservePaths: false
 					},
 					[
-						rootPath
+						source
 					]
 				)
 				.pipe(createWriteStream(generatedFileName))
