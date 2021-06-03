@@ -7,5 +7,11 @@ import { v4 as uuid } from 'uuid'
 ;(async () => {
 	// Init db resources
 	const dbRef = DatabaseManager.getInstance(join(__dirname, 'backups', 'backups.json'))
-	dbRef.init()
+	await dbRef.init()
+
+	try {
+		await dbRef.findRecord('udwiuhad', RecordTable.BACKUPS)
+	} catch (err) {
+		console.log(err.message)
+	}
 })()
