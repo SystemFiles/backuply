@@ -3,10 +3,21 @@ import { BackupRecord, BackupType, RecordTable, RecordType } from '../common/typ
 import { RecordNotFoundException } from '../common/exceptions' 
 
 export class DatabaseManager {
-	constructor(private dbClient: Low<RecordType>, databasePath: string) {
-		const adapter = new JSONFile<RecordType>(databasePath)
+  private static instance: DatabaseManager
+  private dbClient: Low<RecordType>
+
+	private constructor(dbPath: string) {
+		const adapter = new JSONFile<RecordType>(dbPath)
     this.dbClient = new Low<RecordType>(adapter)
 	}
+
+  public static getInstance(path: string): DatabaseManager {
+    if (!DatabaseManager.instance) {
+      DatabaseManager.instance = new DatabaseManager(path)
+    }
+
+    return DatabaseManager.instance
+  }
 
   async init(): Promise<void> {
     try {

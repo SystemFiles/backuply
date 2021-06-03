@@ -1,11 +1,7 @@
 // Specifies type of backup
 export enum BackupType {
-	Daily = 'Daily',
-	Weekly = 'Daily',
-	Monthly = 'Monthly',
-	Quartarly = 'Quarterly',
-	SemiAnually = 'SemiAnually',
-	Anually = 'Anually'
+	FULL = 'full',
+	DIFF = 'incremental'
 }
 
 export enum RecordTable {
@@ -19,13 +15,18 @@ export type FileData = {
 	md5sum: string
 }
 
+export type DirectoryTree = {
+	root: string
+	fullPathFiles: string[]
+}
+
 export type BackupRecord = {
 	id: string
 	name: string
-	size: number
-	checksum: string
+	data: FileData
 	date: string
 	type: BackupType
+	allFiles: DirectoryTree
 }
 
 export type RecordType = {
