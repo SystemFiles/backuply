@@ -17,7 +17,7 @@ export type FileData = {
 
 export type DirectoryTree = {
 	root: string
-	fullPathFiles: string[]
+	files: FileData[]
 }
 
 export type BackupRecord = {

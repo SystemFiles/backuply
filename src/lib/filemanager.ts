@@ -2,13 +2,15 @@ import { readFile } from 'fs-extra'
 import { mkdir, stat } from 'fs/promises'
 import * as tar from 'tar'
 import { createWriteStream } from 'fs'
-import { BackupType, FileData } from '../common/types'
+import { BackupRecord, BackupType, FileData } from '../common/types'
 import { MD5 } from '../common/functions'
 import { IOException } from '../common/exceptions'
 
 export class FileManager {
 	private static instance: FileManager
-	private constructor() {}
+	private constructor() {
+		/* Singleton private constructor to prevent use of `new` with this class */
+	}
 
 	public static getInstance(): FileManager {
 		if (!FileManager.instance) {
@@ -33,7 +35,7 @@ export class FileManager {
 		}
 	}
 
-	private async _difference(latestFull) {
+	private async _difference(latestFull: BackupRecord) {
 		// TODO
 	}
 
@@ -52,7 +54,7 @@ export class FileManager {
 			// Calculate checksums of entire backup file tree (recursively)
 			// Store checksums with absolute paths to files (db entry after operation completed successfully)
 			// Create the FULL backup in tar
-			// Write changes to database entry
+			// Write changes to database entry (including directories & files)
 			// Done
 
 			let buildTar
@@ -71,7 +73,8 @@ export class FileManager {
 			} else {
 				// Differential backup
 				// TODO
-				// Calculate checksum of entire backup file tree
+				// Calculate checksum of entire backup file tree (for all files)
+				// Check for all directories from full backup (with fs.stat) that they still exist. If not, mark directory as deleted
 				// Compare checksum of each file with that of existing file in full backup to see if they are different (note: if one does not exist in the full backup, consider this file changed (added))
 				// Ensure any files existing in FULL backup and not in this backup changed (will have to trigger remove when merged with full backup at restore time)
 				// Store full absolute paths to any changed files in memory (later in database entry)
