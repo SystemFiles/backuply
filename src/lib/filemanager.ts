@@ -1,5 +1,6 @@
 import { mkdir, stat, readdir, readFile } from 'fs/promises'
 import { join } from 'path'
+import { copy } from 'fs-extra'
 import { BackupRecord, BackupType, Directory, FileData, RecordTable } from '../common/types'
 import { MD5 } from '../common/functions'
 import { v4 as uuid } from 'uuid'
@@ -120,10 +121,11 @@ export class FileManager {
 					directoryList: dirData.data,
 					fileList: fileData.data
 				}
-				// Store checksums with absolute paths to files (db entry after operation completed successfully)
-				await db.insert(RecordTable.BACKUPS, backupRecord)
 				// Create the FULL backup
+				await this.createDirectory(destination, generatedBackupName)
+				await copy(source, destination, { overwrite: true, preserveTimestamps: true, errorOnExist: false })
 				// Write changes to database entry (including directories & files)
+				await db.insert(RecordTable.BACKUPS, backupRecord)
 				// Done
 			} else {
 				// Differential backup

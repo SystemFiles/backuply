@@ -22,11 +22,12 @@
   "bugs": {
     "url": "https://github.com/SystemFiles/backuply/issues"
   },
-	"bin": {
-		"backuply": "dist/app.js"
-	},
+  "bin": {
+    "backuply": "dist/app.js"
+  },
   "homepage": "https://github.com/SystemFiles/backuply#readme",
   "devDependencies": {
+    "@types/fs-extra": "^9.0.11",
     "@types/node": "^15.6.1",
     "@typescript-eslint/eslint-plugin": "^4.25.0",
     "@typescript-eslint/parser": "^4.25.0",
