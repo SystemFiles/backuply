@@ -1,7 +1,7 @@
 // Specifies type of backup
 export enum BackupType {
 	FULL = 'full',
-	DIFF = 'incremental'
+	DIFF = 'diff'
 }
 
 export enum RecordTable {
@@ -13,20 +13,21 @@ export type FileData = {
 	fullPath: string
 	byteLength: number
 	md5sum: string
+	deleted: boolean
 }
 
-export type DirectoryTree = {
-	root: string
-	files: FileData[]
+export type Directory = {
+	path: string
+	deleted: boolean
 }
 
 export type BackupRecord = {
 	id: string
 	name: string
-	data: FileData
 	date: string
 	type: BackupType
-	allFiles: DirectoryTree
+	fileList: FileData[]
+	directoryList: Directory[]
 }
 
 export type RecordType = {

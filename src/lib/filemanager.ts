@@ -1,13 +1,15 @@
-import { readFile } from 'fs-extra'
-import { mkdir, stat } from 'fs/promises'
-import * as tar from 'tar'
-import { createWriteStream } from 'fs'
-import { BackupRecord, BackupType, FileData } from '../common/types'
+import { mkdir, stat, readdir, readFile } from 'fs/promises'
+import { join } from 'path'
+import { BackupRecord, BackupType, Directory, FileData, RecordTable } from '../common/types'
 import { MD5 } from '../common/functions'
-import { IOException } from '../common/exceptions'
+import { v4 as uuid } from 'uuid'
+import { BackupFilesDiscoveryException, IOException } from '../common/exceptions'
+import { DatabaseManager } from './database'
 
 export class FileManager {
 	private static instance: FileManager
+	private directoriesBuffer: string[]
+	private filesBuffer: string[]
 	private constructor() {
 		/* Singleton private constructor to prevent use of `new` with this class */
 	}
@@ -39,37 +41,90 @@ export class FileManager {
 		// TODO
 	}
 
+	private async _generateBackupTreeFromRoot(root: string): Promise<void> {
+		const dirContents = await readdir(root)
+		dirContents.forEach((item) => {
+			const absPath = join(root, item)
+			const isDir = stat(absPath).then((info) => info.isDirectory())
+
+			if (isDir) {
+				// store the directory path in a temporary buffer
+				this.directoriesBuffer.push(absPath)
+				return this._generateBackupTreeFromRoot(absPath)
+			}
+			// If not directory store in temporary files buffer
+			return this.filesBuffer.push(absPath)
+		})
+	}
+
+	private async _getFileData(files: string[]): Promise<{ data: FileData[]; error: Error }> {
+		try {
+			const filesSums: FileData[] = []
+			for (const file of files) {
+				const buffer = await readFile(file)
+				filesSums.push({
+					fullPath: file,
+					byteLength: buffer.byteLength,
+					md5sum: MD5(buffer.toString()),
+					deleted: false
+				})
+			}
+			return { data: filesSums, error: null }
+		} catch (err) {
+			return { data: null, error: err }
+		}
+	}
+
+	private async _getDirectoryData(directories: string[]): Promise<{ data: Directory[]; error: Error }> {
+		const dirDataFormatted: Directory[] = []
+		for (const dir in directories) {
+			dirDataFormatted.push({
+				path: dir,
+				deleted: false
+			})
+		}
+
+		return { data: dirDataFormatted, error: null }
+	}
+
 	public async makeBackup(
 		source: string,
 		name: string,
 		destination = '/tmp',
 		useDate = true,
-		type: BackupType = BackupType.FULL
+		type: BackupType = BackupType.FULL,
+		db: DatabaseManager
 	): Promise<FileData> {
 		try {
-			const generatedFileName = useDate
-				? `${destination}/${name}-${type.toString().toLowerCase()}-${new Date().toISOString()}.tar.gz`
-				: `${destination}/${name}.tar.gz`
+			const generatedBackupName = useDate
+				? `${destination}/${name}-${type.toString().toLowerCase()}-${new Date().toISOString()}`
+				: `${destination}/${name}`
 
-			// Calculate checksums of entire backup file tree (recursively)
-			// Store checksums with absolute paths to files (db entry after operation completed successfully)
-			// Create the FULL backup in tar
-			// Write changes to database entry (including directories & files)
-			// Done
-
-			let buildTar
 			if (type === BackupType.FULL) {
-				buildTar = tar.c(
-					{
-						gzip: true,
-						preservePaths: false
-					},
-					[
-						source
-					]
-				)
-				// Write backup
-				buildTar.pipe(createWriteStream(generatedFileName))
+				// Full backup
+				// Get full list of all directories recursively && Get full list of all files (with absolute paths)
+				await this._generateBackupTreeFromRoot(source)
+				// Calculate checksums of entire backup file tree (recursively)
+				const fileData = await this._getFileData(this.filesBuffer)
+				// Create formatted directory data for each directory from root -> leaf
+				const dirData = await this._getDirectoryData(this.directoriesBuffer)
+				if (fileData.error || dirData.error) {
+					throw new BackupFilesDiscoveryException(fileData.error ? fileData.error.message : dirData.error.message)
+				}
+				// Create backup record to store into the database
+				const backupRecord: BackupRecord = {
+					id: uuid(),
+					name: generatedBackupName,
+					type: type,
+					date: new Date().toISOString(),
+					directoryList: dirData.data,
+					fileList: fileData.data
+				}
+				// Store checksums with absolute paths to files (db entry after operation completed successfully)
+				await db.insert(RecordTable.BACKUPS, backupRecord)
+				// Create the FULL backup
+				// Write changes to database entry (including directories & files)
+				// Done
 			} else {
 				// Differential backup
 				// TODO
@@ -82,27 +137,7 @@ export class FileManager {
 				// Write changed files into database entry as list of absolute paths
 			}
 
-			// promisify the write process to ensure subsequent processing can occur
-			const fileData: Promise<FileData> = new Promise((resolve, reject) => {
-				if (!buildTar) {
-					throw new IOException(`Could not find a valid reference to any backup process`)
-				}
-				buildTar.on('end', async () => {
-					const fileBuffer = await readFile(generatedFileName)
-					const bufferSize = fileBuffer.byteLength
-					const checksum = MD5(unescape(fileBuffer.toString()))
-
-					// Resolve file data for backup tarball
-					resolve({
-						fullPath: generatedFileName,
-						byteLength: bufferSize,
-						md5sum: checksum
-					})
-				})
-				buildTar.on('error', (err) => reject(`Failed to write backup file. Reason: ${err}`))
-			})
-
-			return fileData
+			return null
 		} catch (err) {
 			throw new Error(err)
 		}

@@ -1,5 +1,5 @@
 import { JSONFile, Low } from 'lowdb'
-import { BackupRecord, BackupType, RecordTable, RecordType } from '../common/types'
+import { BackupRecord, RecordTable, RecordType } from '../common/types'
 import { RecordNotFoundException } from '../common/exceptions' 
 
 export class DatabaseManager {
@@ -49,14 +49,14 @@ export class DatabaseManager {
     return backup
   }
 
-  async insert(type: BackupType, table: RecordTable, data: BackupRecord): Promise<void> {
+  async insert(table: RecordTable, data: BackupRecord): Promise<void> {
     try {
       switch (table) {
         case RecordTable.BACKUPS:
-          this.dbClient.data.backups.push({...data, type: type})
+          this.dbClient.data.backups.push({...data})
           break;
         case RecordTable.ARCHIVE:
-          this.dbClient.data.archive.push({...data, type: type})
+          this.dbClient.data.archive.push({...data})
           break;
         default:
           break;
@@ -72,7 +72,7 @@ export class DatabaseManager {
     const backup: BackupRecord = await this.findRecord(id)
 
     // Perform the migration from backup -> archive
-    await this.insert(backup.type, RecordTable.ARCHIVE, {...backup})
+    await this.insert(RecordTable.ARCHIVE, {...backup})
     return this.delete(backup.id, RecordTable.BACKUPS)
   }
 
