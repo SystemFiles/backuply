@@ -99,7 +99,7 @@ export class FileManager {
 	private async _getDirectoryData(directories: string[]): Promise<[Directory[], Error]> {
 		try {
 			const dirDataFormatted: Directory[] = []
-			for (const dir in directories) {
+			for (const dir of directories) {
 				dirDataFormatted.push({
 					path: dir,
 					deleted: false
