@@ -26,6 +26,7 @@ export type BackupRecord = {
 	name: string
 	created: string
 	type: BackupType
+	bytelength: number
 	fileList: FileData[]
 	directoryList: Directory[]
 }

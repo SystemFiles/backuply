@@ -13,3 +13,9 @@ export class BackupFilesDiscoveryException extends Error {
 		super(`There was a problem trying to discover files or directories for the backup metadata. Error: ${message}`)
 	}
 }
+export class BackupException extends Error {
+	// A general backup exception
+	constructor(readonly message: string = 'Unknown Cause') {
+		super(`Something went wrong creating the backup. Error: ${message}`)
+	}
+}

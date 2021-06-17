@@ -1,10 +1,10 @@
 import { mkdir, stat, readdir, readFile } from 'fs/promises'
 import { join } from 'path'
-import { copy, exists, pathExists } from 'fs-extra'
+import { copy, pathExists } from 'fs-extra'
 import { BackupRecord, BackupType, Directory, FileData, RecordTable } from '../common/types'
 import { MD5 } from '../common/functions'
 import { v4 as uuid } from 'uuid'
-import { BackupFilesDiscoveryException, IOException } from '../common/exceptions'
+import { BackupException, BackupFilesDiscoveryException, IOException } from '../common/exceptions'
 import { DatabaseManager } from './database'
 import { log } from './logger'
 
@@ -28,22 +28,13 @@ export class FileManager {
 		const fullPath = `${rootPath}/${directoryName}`
 		try {
 			if (!await pathExists(fullPath)) {
-				return [
-					await mkdir(fullPath, { recursive: true, mode: '755' }),
-					null
-				]
+				return [ await mkdir(fullPath, { recursive: true, mode: '755' }), null ]
 			} else {
-				log(`Backup directory, ${rootPath}/${directoryName}, already exists ... skipping create.`)
-				return [
-					fullPath,
-					null
-				]
+				log(`Directory already exists ... skipping create.`)
+				return [ fullPath, null ]
 			}
 		} catch (err) {
-			return [
-				null,
-				err
-			]
+			return [ null, err ]
 		}
 	}
 
@@ -72,6 +63,19 @@ export class FileManager {
 		}
 	}
 
+	private async _getTotalByteLengthOfBuffer(): Promise<[number, Error]> {
+		try {
+			let totalSize = 0
+			for (const file of this.filesBuffer) {
+				totalSize += (await stat(file)).size
+			}
+
+			return [ totalSize, null ]
+		} catch (err) {
+			return [ null, err ]
+		}
+	}
+
 	private async _getFileData(files: string[]): Promise<[FileData[], Error]> {
 		try {
 			const filesSums: FileData[] = []
@@ -84,15 +88,9 @@ export class FileManager {
 					deleted: false
 				})
 			}
-			return [
-				filesSums,
-				null
-			]
+			return [ filesSums, null ]
 		} catch (err) {
-			return [
-				null,
-				err
-			]
+			return [ null, err ]
 		}
 	}
 
@@ -105,15 +103,9 @@ export class FileManager {
 					deleted: false
 				})
 			}
-			return [
-				dirDataFormatted,
-				null
-			]
+			return [ dirDataFormatted, null ]
 		} catch (err) {
-			return [
-				null,
-				err
-			]
+			return [ null, err ]
 		}
 	}
 
@@ -124,44 +116,48 @@ export class FileManager {
 		destination = '/tmp',
 		useDate = true,
 		type: BackupType = BackupType.FULL
-	): Promise<(FileData | Error)[]> {
+	): Promise<[BackupRecord, Error]> {
 		try {
 			const timestamp = new Date().toISOString()
 			const generatedBackupName = useDate
 				? `${name}-${type.toString().toLowerCase()}-${timestamp.slice(0, 10)}`
 				: `${name}`
+			let backupRecord: BackupRecord
 
 			if (type === BackupType.FULL) {
 				// Full backup
 				// Get full list of all directories recursively && Get full list of all files (with absolute paths)
 				await this._generateBackupTreeFromRoot(source)
 				// Calculate checksums of entire backup file tree (recursively)
-				const [
-					fileData,
-					fileError
-				] = await this._getFileData(this.filesBuffer)
+				const [ fileData, fileError ] = await this._getFileData(this.filesBuffer)
 				// Create formatted directory data for each directory from root -> leaf
-				const [
-					dirData,
-					dirError
-				] = await this._getDirectoryData(this.directoriesBuffer)
+				const [ dirData, dirError ] = await this._getDirectoryData(this.directoriesBuffer)
 				if (fileError || dirError) {
 					throw new BackupFilesDiscoveryException(fileError ? fileError.message : dirError.toString())
 				}
 				// Create backup record to store into the database
-				const backupRecord: BackupRecord = {
+				const [ backupSize, sizeError ] = await this._getTotalByteLengthOfBuffer()
+				if (sizeError) {
+					throw new BackupException(`Failed to calculate backup size. Reason: ${sizeError.message}`)
+				}
+				backupRecord = {
 					id: uuid(),
 					name: generatedBackupName,
 					type: type,
 					created: timestamp,
+					bytelength: backupSize,
 					directoryList: dirData,
 					fileList: fileData
 				}
+
+				// Only backup things that have changed (use checksums
+				// + verify exist of all directories from full...any
+				// not found will be marked as deleted in diff backup)
+
+				// Copy list of changed files to new backup directory
+
 				// Create the FULL backup
-				const [
-					_,
-					createErr
-				] = await this.createDirectory(destination, generatedBackupName)
+				const [ _, createErr ] = await this.createDirectory(destination, generatedBackupName)
 				if (createErr) {
 					throw new IOException(`Could not create the backup directory. Aborting... (${createErr.message})`)
 				}
@@ -185,15 +181,9 @@ export class FileManager {
 				// Write changed files into database entry as list of absolute paths
 			}
 
-			return [
-				null,
-				null
-			]
+			return [ backupRecord, null ]
 		} catch (err) {
-			return [
-				null,
-				err
-			]
+			return [ null, err ]
 		}
 	}
 }
