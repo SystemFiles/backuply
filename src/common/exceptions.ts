@@ -19,3 +19,8 @@ export class BackupException extends Error {
 		super(`Something went wrong creating the backup. Error: ${message}`)
 	}
 }
+export class DatabaseReadException extends Error {
+	constructor(readonly message: string = 'Unknown Cause') {
+		super(`Failed to read the requested data from the local database. Reason: ${message}`)
+	}
+}

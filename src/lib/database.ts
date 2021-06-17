@@ -1,6 +1,7 @@
 import { JSONFile, Low } from 'lowdb'
 import { BackupRecord, RecordTable, RecordType } from '../common/types'
 import { RecordNotFoundException } from '../common/exceptions' 
+import { config } from '../config/backuply'
 
 export class DatabaseManager {
   private static instance: DatabaseManager
@@ -11,9 +12,9 @@ export class DatabaseManager {
     this.dbClient = new Low<RecordType>(adapter)
 	}
 
-  public static getInstance(path: string): DatabaseManager {
+  public static getInstance(path?: string): DatabaseManager {
     if (!DatabaseManager.instance) {
-      DatabaseManager.instance = new DatabaseManager(path)
+      DatabaseManager.instance = new DatabaseManager(path ? path : config.database.path)
     }
 
     return DatabaseManager.instance
@@ -32,7 +33,7 @@ export class DatabaseManager {
     }
   }
 
-  findRecord(id: string, table: RecordTable = RecordTable.BACKUPS): BackupRecord {
+  findRecordById(id: string, table: RecordTable = RecordTable.BACKUPS): [BackupRecord, Error] {
     let backup
     switch (table) {
       case RecordTable.BACKUPS:
@@ -68,25 +69,35 @@ export class DatabaseManager {
     }
   }
 
-  async archive(id: string): Promise<BackupRecord> { 
-    const backup: BackupRecord = await this.findRecord(id)
+  async archive(id: string): Promise<[BackupRecord, Error]> { 
+    try {
+      const [backup, error] = await this.findRecordById(id)
+      if (error) {
+        return [null, error]
+      }
 
-    // Perform the migration from backup -> archive
-    await this.insert(RecordTable.ARCHIVE, {...backup})
-    return this.delete(backup.id, RecordTable.BACKUPS)
+      // Perform the migration from backup -> archive
+      await this.insert(RecordTable.ARCHIVE, {...backup})
+      return [await this.delete(backup.id, RecordTable.BACKUPS)[0], null]
+    } catch (err) {
+      return [null, err]
+    }
   }
 
-  async delete(id: string, table: RecordTable = RecordTable.BACKUPS): Promise<BackupRecord> {
+  async delete(id: string, table: RecordTable = RecordTable.BACKUPS): Promise<[BackupRecord, Error]> {
     try {
-      const backupItem = await this.findRecord(id, table)
+      const [backupItem, error] = this.findRecordById(id, table)
+      if (error) {
+        return [null, error]
+      }
 
       // Delete the record
       this.dbClient.data.backups = this.dbClient.data.backups.filter((backup) => backup.id !== id)
       await this.dbClient.write()
 
-      return backupItem
+      return [backupItem, null]
     } catch (err) {
-      throw new Error(`Error occurred when removing a backup record, ${err}`)
+      return [null, err]
     }
   }
 }

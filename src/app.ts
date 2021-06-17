@@ -8,15 +8,19 @@ import { log } from './lib/logger'
 	const dbRef = DatabaseManager.getInstance(join(cwd(), 'backups', 'backups.json'))
 	await dbRef.init()
 
-	const [ record, error ] = await FileManager.getInstance().makeBackup(
+	// Perform a full backup
+	const [ record, error ] = await FileManager.getInstance().fullBackup(
 		join(cwd(), 'dev', 'backup_source'),
 		'test-backup',
-		dbRef,
 		join(cwd(), 'dev', 'backup_dest')
 	)
 
 	if (error) {
 		log(`There was a problem creating the backup. Reason: ${error.message}`)
+		process.exit(2)
 	}
 	log(`(${record.id}) Backup created successfully!`)
+
+	// Perform a diff backup
+	// TODO
 })()
