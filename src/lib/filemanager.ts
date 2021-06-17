@@ -51,8 +51,33 @@ export class FileManager {
 		return compareDirs.filter((d) => d.path === dir.path).length === 0
 	}
 
-	private _dirDifference() {
+	private _dirDifference(fullId: string, directories: Directory[]): [Directory[], Error] {
 		// TODO: implement directory difference process for diff backup
+		// Note: We don't have to consider added directories since they will be
+		//       automatically handled when merged with the referenced full backup
+		try {
+			const db: DatabaseManager = DatabaseManager.getInstance()
+			const [ fullRecord, error ] = db.findRecordById(fullId)
+			if (error) {
+				throw new DatabaseReadException(`Failed to find record with ID, ${fullId}.`)
+			}
+			const updated: Directory[] = []
+			for (const fdir of fullRecord.directoryList) {
+				for (const ndir of directories) {
+					if (fdir.path === ndir.path) {
+						updated.push(ndir)
+					}
+				}
+				if (updated[-1].path !== fdir.path) {
+					updated.push({
+						path: fdir.path,
+						deleted: true
+					})
+				}
+			}
+		} catch (err) {
+			return [ null, err ]
+		}
 	}
 
 	private _fileDifference(fullId: string, files: FileData[]): [FileData[], Error] {
@@ -148,6 +173,7 @@ export class FileManager {
 	}
 
 	public async differentialBackup(
+		fullId: string,
 		source: string,
 		name: string,
 		destination = '/tmp',
@@ -166,9 +192,17 @@ export class FileManager {
 			// TODO
 			// Generate backup tree
 			await this._generateBackupTreeFromRoot(source)
-			// Calculate checksum of entire backup file tree (for all files)
-			// Check for all directories from full backup (with fs.stat) that they still exist. If not, mark directory as deleted
+			// Get file and directory data
+			const [ fileData, fileError ] = await this._getFileData(this.filesBuffer)
+			const [ dirData, dirError ] = await this._getDirectoryData(this.directoriesBuffer)
+			if (fileError || dirError) {
+				throw new BackupFilesDiscoveryException(fileError ? fileError.message : dirError.toString())
+			}
 			// Compare checksum of each file with that of existing file in full backup to see if they are different (note: if one does not exist in the full backup, consider this file changed (added))
+			const [ fChanged, fcErr ] = await this._fileDifference(fullId, fileData)
+			const [ dChanged, dcErr ] = await this._dirDifference()
+
+			// Check for all directories from full backup (with fs.stat) that they still exist. If not, mark directory as deleted
 			// Ensure any files existing in FULL backup and not in this backup changed (will have to trigger remove when merged with full backup at restore time)
 			// Store full absolute paths to any changed files in memory (later in database entry)
 			// Somehow create tar containing only changed files
