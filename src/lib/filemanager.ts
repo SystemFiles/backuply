@@ -126,8 +126,9 @@ export class FileManager {
 		type: BackupType = BackupType.FULL
 	): Promise<(FileData | Error)[]> {
 		try {
+			const timestamp = new Date().toISOString()
 			const generatedBackupName = useDate
-				? `${name}-${type.toString().toLowerCase()}-${new Date().toISOString()}`
+				? `${name}-${type.toString().toLowerCase()}-${timestamp.slice(0, 10)}`
 				: `${name}`
 
 			if (type === BackupType.FULL) {
@@ -152,7 +153,7 @@ export class FileManager {
 					id: uuid(),
 					name: generatedBackupName,
 					type: type,
-					date: new Date().toISOString(),
+					created: timestamp,
 					directoryList: dirData,
 					fileList: fileData
 				}

@@ -24,7 +24,7 @@ export type Directory = {
 export type BackupRecord = {
 	id: string
 	name: string
-	date: string
+	created: string
 	type: BackupType
 	fileList: FileData[]
 	directoryList: Directory[]
