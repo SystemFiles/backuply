@@ -257,7 +257,11 @@ export class FileManager {
 				)
 			}
 
-			// Copy all changed files (maintaining path and timestamps)
+			// Make the backup directory && Copy all changed files (maintaining path and timestamps)
+			const [ _, createErr ] = await this.createDirectory(destination, generatedBackupName)
+			if (createErr) {
+				throw new IOException(`Could not create the backup directory. Aborting... (${createErr.message})`)
+			}
 			await this._copySelectFilesAsync(
 				source,
 				fChanged,
@@ -266,14 +270,23 @@ export class FileManager {
 			)
 
 			// Create && update backup record for this diff backup
+			const [ backupSize, sizeError ] = await this._getTotalByteLengthOfBuffer()
+			if (sizeError) {
+				throw new BackupException(`Failed to calculate backup size. Reason: ${sizeError.message}`)
+			}
+			const backupRecord: BackupRecord = {
+				id: uuid(),
+				name: generatedBackupName,
+				type: BackupType.DIFF,
+				created: timestamp,
+				bytelength: backupSize,
+				directoryList: dChanged,
+				fileList: fChanged
+			}
 
-			return [ null, null ]
-
-			// Check for all directories from full backup (with fs.stat) that they still exist. If not, mark directory as deleted
-			// Ensure any files existing in FULL backup and not in this backup changed (will have to trigger remove when merged with full backup at restore time)
-			// Store full absolute paths to any changed files in memory (later in database entry)
-			// Somehow create tar containing only changed files
-			// Write changed files into database entry as list of absolute paths
+			// Update the database
+			await db.insert(RecordTable.BACKUPS, backupRecord)
+			return [ backupRecord, null ]
 		} catch (err) {
 			return [ null, err ]
 		}
