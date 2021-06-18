@@ -191,6 +191,37 @@ export class FileManager {
 		}
 	}
 
+	private async _copySelectFilesAsync(
+		sourceParent: string,
+		files: FileData[],
+		destParent: string,
+		excludeDirs: Directory[] = []
+	): Promise<Error> {
+		try {
+			const copyPromises: Promise<void>[] = []
+			for (const f of files) {
+				let skip = false
+				for (const d of excludeDirs) {
+					skip = f.fullPath.startsWith(d.path)
+				}
+				if (!skip && !f.deleted) {
+					log(`Copying: ${f.fullPath}...`)
+					copyPromises.push(
+						copy(f.fullPath, join(destParent, f.fullPath.split(sourceParent)[1]), {
+							overwrite: true,
+							preserveTimestamps: true,
+							errorOnExist: false
+						})
+					)
+				}
+			}
+			await Promise.all(copyPromises)
+		} catch (err) {
+			return err
+		}
+		return
+	}
+
 	public async differentialBackup(
 		fullId: string,
 		source: string,
@@ -226,14 +257,15 @@ export class FileManager {
 				)
 			}
 
-			log(`Files changed: ${fChanged.length}`)
-			for (const fd of fChanged) {
-				log(`${fd.fullPath} - ${fd.deleted}`)
-			}
+			// Copy all changed files (maintaining path and timestamps)
+			await this._copySelectFilesAsync(
+				source,
+				fChanged,
+				join(destination, generatedBackupName),
+				dChanged.filter((d) => d.deleted)
+			)
 
-			for (const dd of dChanged) {
-				log(`${dd.path} - ${dd.deleted}`)
-			}
+			// Create && update backup record for this diff backup
 
 			return [ null, null ]
 
