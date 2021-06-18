@@ -37,10 +37,7 @@
   },
   "dependencies": {
     "fs-extra": "^10.0.0",
-    "fstream": "^1.0.12",
     "lowdb": "github:dankreiger/lowdb#chore/esm-cjs-hybrid-WITH-LIB",
-    "tar": "^6.1.0",
-    "uuid": "^8.3.2",
-    "zlib": "^1.0.5"
+    "uuid": "^8.3.2"
   }
 }

@@ -52,7 +52,6 @@ export class FileManager {
 	}
 
 	private _dirDifference(fullId: string, directories: Directory[]): [Directory[], Error] {
-		// TODO: implement directory difference process for diff backup
 		// Note: We don't have to consider added directories since they will be
 		//       automatically handled when merged with the referenced full backup
 		try {
@@ -61,46 +60,59 @@ export class FileManager {
 			if (error) {
 				throw new DatabaseReadException(`Failed to find record with ID, ${fullId}.`)
 			}
-			const updated: Directory[] = []
+			const deleted: Directory[] = []
+			// for any path in old full directory list
+			// there should be a path in the new directory list that matches
+			// else the path is deleted
 			for (const fdir of fullRecord.directoryList) {
-				for (const ndir of directories) {
-					if (fdir.path === ndir.path) {
-						updated.push(ndir)
-					}
-				}
-				if (updated[-1].path !== fdir.path) {
-					updated.push({
+				const dmatch = directories.filter((np) => np.path === fdir.path)
+				if (dmatch.length === 0) {
+					deleted.push({
 						path: fdir.path,
 						deleted: true
 					})
 				}
 			}
+			return [ deleted, null ]
 		} catch (err) {
 			return [ null, err ]
 		}
 	}
 
 	private _fileDifference(fullId: string, files: FileData[]): [FileData[], Error] {
+		// Note: We don't have to consider added files since they will be
+		//       automatically handled when merged with the referenced full backup
 		try {
 			const db: DatabaseManager = DatabaseManager.getInstance()
 			const [ fullRecord, error ] = db.findRecordById(fullId)
 			if (error) {
 				throw new DatabaseReadException(`Failed to find record with ID, ${fullId}.`)
 			}
-
 			// Search for all matching files (using abs paths)
 			const changed: FileData[] = []
-			for (const dfile of files) {
-				for (const ffile of fullRecord.fileList) {
-					// Compare checksums of files with same path to determine changed files
-					if (dfile.md5sum !== ffile.md5sum) {
-						// append list of changed files (in the form of FileData) to return at the end of function
-						changed.push(dfile)
+			// for any
+			for (const ffile of fullRecord.fileList) {
+				const match: FileData[] = []
+				for (const dfile of files) {
+					if (ffile.fullPath === dfile.fullPath) {
+						match.push(ffile)
+						// Compare checksums of files with same path to determine changed files
+						if (ffile.md5sum !== dfile.md5sum) {
+							// append list of changed files (in the form of FileData) to return at the end of function
+							changed.push(dfile)
+						}
 					}
+				}
+				if (match.length === 0) {
+					changed.push({
+						deleted: true,
+						...ffile
+					})
 				}
 			}
 			return [ changed, null ]
 		} catch (err) {
+			log(err)
 			return [ null, err ]
 		}
 	}
@@ -200,7 +212,22 @@ export class FileManager {
 			}
 			// Compare checksum of each file with that of existing file in full backup to see if they are different (note: if one does not exist in the full backup, consider this file changed (added))
 			const [ fChanged, fcErr ] = await this._fileDifference(fullId, fileData)
-			const [ dChanged, dcErr ] = await this._dirDifference()
+			const [ dChanged, dcErr ] = await this._dirDifference(fullId, dirData)
+			if (fcErr || dcErr) {
+				throw new BackupException(
+					`Failed to calculate file or directory differences. Reason: ${fcErr ? fcErr.message : dcErr.message}`
+				)
+			}
+
+			for (const fd of fChanged) {
+				log(`${fd.fullPath} - ${fd.deleted}`)
+			}
+
+			for (const dd of dChanged) {
+				log(`${dd.path} - ${dd.deleted}`)
+			}
+
+			return [ null, null ]
 
 			// Check for all directories from full backup (with fs.stat) that they still exist. If not, mark directory as deleted
 			// Ensure any files existing in FULL backup and not in this backup changed (will have to trigger remove when merged with full backup at restore time)

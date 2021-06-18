@@ -2,6 +2,7 @@ import { JSONFile, Low } from 'lowdb'
 import { BackupRecord, RecordTable, RecordType } from '../common/types'
 import { RecordNotFoundException } from '../common/exceptions' 
 import { config } from '../config/backuply'
+import { log } from './logger'
 
 export class DatabaseManager {
   private static instance: DatabaseManager
@@ -34,20 +35,24 @@ export class DatabaseManager {
   }
 
   findRecordById(id: string, table: RecordTable = RecordTable.BACKUPS): [BackupRecord, Error] {
-    let backup
-    switch (table) {
-      case RecordTable.BACKUPS:
-        backup = this.dbClient.data.backups.find((backup) => backup.id === id)
-        break;
-      case RecordTable.ARCHIVE:
-        backup = this.dbClient.data.archive.find((backup) => backup.id === id)
-    }
+    try {
+      let backup: BackupRecord
+      switch (table) {
+        case RecordTable.BACKUPS:
+          backup = this.dbClient.data.backups.find((backup) => backup.id === id)
+          break;
+        case RecordTable.ARCHIVE:
+          backup = this.dbClient.data.archive.find((backup) => backup.id === id)
+      }
 
-    if (!backup) {
-      throw new RecordNotFoundException(id, `Record could not be found with Id, ${id}`)
-    }
+      if (!backup) {
+        throw new RecordNotFoundException(id, `Record could not be found with Id, ${id}`)
+      }
 
-    return backup
+      return [backup, null]
+    } catch (err) {
+      return [null, err]
+    }
   }
 
   async insert(table: RecordTable, data: BackupRecord): Promise<void> {

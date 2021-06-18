@@ -22,5 +22,16 @@ import { log } from './lib/logger'
 	log(`(${record.id}) Backup created successfully!`)
 
 	// Perform a diff backup
-	// TODO
+	const testFullId = '4e9439c0-9792-4d8d-9550-7ad66b5405bf'
+	const [ dRecord, dError ] = await FileManager.getInstance().differentialBackup(
+		testFullId, // replace with record.id
+		join(cwd(), 'dev', 'backup_source'),
+		'test-backup',
+		join(cwd(), 'dev', 'backup_dest')
+	)
+	if (dError) {
+		log(`Error >> ${dError.message}`)
+		process.exit(2)
+	}
+	// log(`(${dRecord.id}) Backup created successfully!`)
 })()
