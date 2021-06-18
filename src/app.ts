@@ -9,17 +9,17 @@ import { log } from './lib/logger'
 	await dbRef.init()
 
 	// Perform a full backup
-	const [ record, error ] = await FileManager.getInstance().fullBackup(
-		join(cwd(), 'dev', 'backup_source'),
-		'test-backup',
-		join(cwd(), 'dev', 'backup_dest')
-	)
+	// const [ record, error ] = await FileManager.getInstance().fullBackup(
+	// 	join(cwd(), 'dev', 'backup_source'),
+	// 	'test-backup',
+	// 	join(cwd(), 'dev', 'backup_dest')
+	// )
 
-	if (error) {
-		log(`There was a problem creating the backup. Reason: ${error.message}`)
-		process.exit(2)
-	}
-	log(`(${record.id}) Backup created successfully!`)
+	// if (error) {
+	// 	log(`There was a problem creating the backup. Reason: ${error.message}`)
+	// 	process.exit(2)
+	// }
+	// log(`(${record.id}) Backup created successfully!`)
 
 	// Perform a diff backup
 	const testFullId = '4e9439c0-9792-4d8d-9550-7ad66b5405bf'

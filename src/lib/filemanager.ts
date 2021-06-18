@@ -43,6 +43,11 @@ export class FileManager {
 		}
 	}
 
+	public clearBuffers(): void {
+		this.filesBuffer = []
+		this.directoriesBuffer = []
+	}
+
 	private _isFileDeleted(file: FileData, compareFiles: FileData[]): boolean {
 		return compareFiles.filter((f) => f.fullPath === file.fullPath).length === 0
 	}
@@ -105,8 +110,10 @@ export class FileManager {
 				}
 				if (match.length === 0) {
 					changed.push({
-						deleted: true,
-						...ffile
+						fullPath: ffile.fullPath,
+						byteLength: ffile.byteLength,
+						md5sum: ffile.md5sum,
+						deleted: true
 					})
 				}
 			}
@@ -211,14 +218,15 @@ export class FileManager {
 				throw new BackupFilesDiscoveryException(fileError ? fileError.message : dirError.toString())
 			}
 			// Compare checksum of each file with that of existing file in full backup to see if they are different (note: if one does not exist in the full backup, consider this file changed (added))
-			const [ fChanged, fcErr ] = await this._fileDifference(fullId, fileData)
-			const [ dChanged, dcErr ] = await this._dirDifference(fullId, dirData)
+			const [ fChanged, fcErr ] = this._fileDifference(fullId, fileData)
+			const [ dChanged, dcErr ] = this._dirDifference(fullId, dirData)
 			if (fcErr || dcErr) {
 				throw new BackupException(
 					`Failed to calculate file or directory differences. Reason: ${fcErr ? fcErr.message : dcErr.message}`
 				)
 			}
 
+			log(`Files changed: ${fChanged.length}`)
 			for (const fd of fChanged) {
 				log(`${fd.fullPath} - ${fd.deleted}`)
 			}
