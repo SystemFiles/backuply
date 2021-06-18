@@ -48,7 +48,7 @@ export class BackupManager {
 		this.directoriesBuffer = []
 	}
 
-	private _dirDifference(fullId: string, directories: Directory[]): [Directory[], Error] {
+	private async _dirDifference(fullId: string, directories: Directory[]): Promise<[Directory[], Error]> {
 		// Note: We don't have to consider added directories since they will be
 		//       automatically handled when merged with the referenced full backup
 		try {
@@ -73,7 +73,7 @@ export class BackupManager {
 		}
 	}
 
-	private _fileDifference(fullId: string, files: FileData[]): [FileData[], Error] {
+	private async _fileDifference(fullId: string, files: FileData[]): Promise<[FileData[], Error]> {
 		// Note: We don't have to consider added files since they will be
 		//       automatically handled when merged with the referenced full backup
 		try {
@@ -84,16 +84,16 @@ export class BackupManager {
 			}
 			// Search for all matching files (using abs paths)
 			const changed: FileData[] = []
-			// for any
+			// Get changed files + mark any deleted files
 			for (const ffile of fullRecord.fileList) {
 				const match: FileData[] = []
 				for (const dfile of files) {
 					if (ffile.fullPath === dfile.fullPath) {
-						match.push(ffile)
+						match.push(ffile) // Exists on both backups
 						// Compare checksums of files with same path to determine changed files
 						if (ffile.md5sum !== dfile.md5sum) {
 							// append list of changed files (in the form of FileData) to return at the end of function
-							changed.push(dfile)
+							changed.push(dfile) // Modified
 						}
 					}
 				}
@@ -104,6 +104,13 @@ export class BackupManager {
 						md5sum: ffile.md5sum,
 						deleted: true
 					})
+				}
+			}
+			// Find any added files and also add them to changed
+			for (const dfile of files) {
+				const match = fullRecord.fileList.filter((f) => f.fullPath === dfile.fullPath).length !== 0
+				if (!match) {
+					changed.push(dfile)
 				}
 			}
 			return [ changed, null ]
@@ -231,8 +238,8 @@ export class BackupManager {
 				throw new BackupFilesDiscoveryException(fileError ? fileError.message : dirError.toString())
 			}
 			// Compare referenced full backup with latest diff backup data to determine deltas to store
-			const [ fChanged, fcErr ] = this._fileDifference(fullId, fileData)
-			const [ dChanged, dcErr ] = this._dirDifference(fullId, dirData)
+			const [ fChanged, fcErr ] = await this._fileDifference(fullId, fileData)
+			const [ dChanged, dcErr ] = await this._dirDifference(fullId, dirData)
 			if (fcErr || dcErr) {
 				throw new BackupException(
 					`Failed to calculate file or directory differences. Reason: ${fcErr ? fcErr.message : dcErr.message}`

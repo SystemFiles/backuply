@@ -23,7 +23,7 @@ import { log } from './lib/logger'
 	BackupManager.getInstance().clearBuffers()
 
 	// Perform a diff backup
-	const testFullId = 'ad6d9cfd-0401-4b15-81e7-bdbc62ffe8bf'
+	const testFullId = 'd1c15b67-e567-4773-b540-7a67fb137093'
 	const [ dRecord, dError ] = await BackupManager.getInstance().differentialBackup(
 		testFullId, // replace with record.id
 		join(cwd(), 'dev', 'backup_source'),
