@@ -23,6 +23,7 @@ export type Directory = {
 
 export type BackupRecord = {
 	id: string
+	basedOn: string
 	name: string
 	created: string
 	type: BackupType

@@ -215,7 +215,7 @@ export class BackupManager {
 		return
 	}
 
-	public async differentialBackup(
+	public async diffBackup(
 		fullId: string,
 		source: string,
 		name: string,
@@ -265,6 +265,7 @@ export class BackupManager {
 			}
 			const backupRecord: BackupRecord = {
 				id: uuid(),
+				basedOn: fullId,
 				name: generatedBackupName,
 				type: BackupType.DIFF,
 				created: timestamp,
@@ -310,6 +311,7 @@ export class BackupManager {
 			}
 			const backupRecord: BackupRecord = {
 				id: uuid(),
+				basedOn: null,
 				name: generatedBackupName,
 				type: BackupType.FULL,
 				created: timestamp,
