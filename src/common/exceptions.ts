@@ -24,3 +24,8 @@ export class DatabaseReadException extends Error {
 		super(`Failed to read the requested data from the local database. Reason: ${message}`)
 	}
 }
+export class RestoreException extends Error {
+	constructor(readonly message: string = 'Unknown Cause') {
+		super(`Failed to restore backup. ${message}`)
+	}
+}

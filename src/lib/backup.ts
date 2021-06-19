@@ -271,7 +271,9 @@ export class BackupManager {
 				created: timestamp,
 				bytelength: backupSize,
 				directoryList: dChanged,
-				fileList: fChanged
+				fileList: fChanged,
+				sourceRoot: source,
+				destRoot: join(destination, generatedBackupName)
 			}
 
 			// Update the database (only after everything else works properly)
@@ -317,7 +319,9 @@ export class BackupManager {
 				created: timestamp,
 				bytelength: backupSize,
 				directoryList: dirData,
-				fileList: fileData
+				fileList: fileData,
+				sourceRoot: source,
+				destRoot: join(destination, generatedBackupName)
 			}
 
 			// Create the FULL backup

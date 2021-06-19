@@ -30,6 +30,8 @@ export type BackupRecord = {
 	bytelength: number
 	fileList: FileData[]
 	directoryList: Directory[]
+	sourceRoot: string
+	destRoot: string
 }
 
 export type RecordType = {
