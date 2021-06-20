@@ -29,7 +29,7 @@ export class BackupManager {
 		return BackupManager.instance
 	}
 
-	public async createDirectory(rootPath: string, directoryName: string): Promise<[string, Error]> {
+	private async _createDirectory(rootPath: string, directoryName: string): Promise<[string, Error]> {
 		const fullPath = `${rootPath}/${directoryName}`
 		try {
 			if (!await pathExists(fullPath)) {
@@ -49,33 +49,41 @@ export class BackupManager {
 	}
 
 	private async _dirDifference(fullId: string, directories: Directory[]): Promise<[Directory[], Error]> {
-		// Note: We don't have to consider added directories since they will be
-		//       automatically handled when merged with the referenced full backup
+		/* 
+			Capture changes to directories from the current(diff) and referenced full backup (fullId)
+		*/
 		try {
 			const db: DatabaseManager = DatabaseManager.getInstance()
 			const [ fullRecord, error ] = db.findRecordById(fullId)
 			if (error) {
 				throw new DatabaseReadException(`Failed to find record with ID, ${fullId}.`)
 			}
-			const deleted: Directory[] = []
+			const changed: Directory[] = []
 			for (const fdir of fullRecord.directoryList) {
 				const dmatch = directories.filter((np) => np.path === fdir.path)
 				if (dmatch.length === 0) {
-					deleted.push({
+					changed.push({
 						path: fdir.path,
 						deleted: true
 					})
 				}
 			}
-			return [ deleted, null ]
+
+			// Find any added directories and also add them to changed
+			for (const d of directories) {
+				const added = fullRecord.directoryList.filter((fd) => fd.path === d.path).length === 0
+				if (added) changed.push(d)
+			}
+			return [ changed, null ]
 		} catch (err) {
 			return [ null, err ]
 		}
 	}
 
 	private async _fileDifference(fullId: string, files: FileData[]): Promise<[FileData[], Error]> {
-		// Note: We don't have to consider added files since they will be
-		//       automatically handled when merged with the referenced full backup
+		/*
+			Capture any file changes between current(diff) and a referenced full backup
+		*/
 		try {
 			const db: DatabaseManager = DatabaseManager.getInstance()
 			const [ fullRecord, error ] = db.findRecordById(fullId)
@@ -108,10 +116,8 @@ export class BackupManager {
 			}
 			// Find any added files and also add them to changed
 			for (const dfile of files) {
-				const match = fullRecord.fileList.filter((f) => f.fullPath === dfile.fullPath).length !== 0
-				if (!match) {
-					changed.push(dfile)
-				}
+				const added = fullRecord.fileList.filter((f) => f.fullPath === dfile.fullPath).length === 0
+				if (added) changed.push(dfile)
 			}
 			return [ changed, null ]
 		} catch (err) {
@@ -154,17 +160,17 @@ export class BackupManager {
 
 	private async _getFileData(files: string[]): Promise<[FileData[], Error]> {
 		try {
-			const filesSums: FileData[] = []
+			const fileData: FileData[] = []
 			for (const file of files) {
 				const buffer = await readFile(file)
-				filesSums.push({
+				fileData.push({
 					fullPath: file,
 					byteLength: buffer.byteLength,
 					md5sum: MD5(buffer.toString()),
 					deleted: false
 				})
 			}
-			return [ filesSums, null ]
+			return [ fileData, null ]
 		} catch (err) {
 			return [ null, err ]
 		}
@@ -186,9 +192,9 @@ export class BackupManager {
 	}
 
 	private async _copySelectFilesAsync(
-		sourceParent: string,
+		sourceRoot: string,
 		files: FileData[],
-		destParent: string,
+		destRoot: string,
 		excludeDirs: Directory[] = []
 	): Promise<Error> {
 		try {
@@ -200,7 +206,7 @@ export class BackupManager {
 				}
 				if (!skip && !f.deleted) {
 					copyPromises.push(
-						copy(f.fullPath, join(destParent, f.fullPath.split(sourceParent)[1]), {
+						copy(f.fullPath, join(destRoot, f.fullPath.split(sourceRoot)[1]), {
 							overwrite: true,
 							preserveTimestamps: true,
 							errorOnExist: false
@@ -213,6 +219,17 @@ export class BackupManager {
 			return err
 		}
 		return
+	}
+
+	private async _handleCreatedEmptyDirectories(directories: Directory[], destRoot: string): Promise<Error> {
+		try {
+			// Instead of copying, we just create the directories
+			directories.map((d) => {
+				if (!d.deleted) this._createDirectory(destRoot, d.path)
+			})
+		} catch (err) {
+			return err
+		}
 	}
 
 	public async diffBackup(
@@ -247,7 +264,7 @@ export class BackupManager {
 			}
 
 			// Make the backup directory && Copy all changed files (maintaining path and timestamps)
-			const [ _, createErr ] = await this.createDirectory(destination, generatedBackupName)
+			const [ _, createErr ] = await this._createDirectory(destination, generatedBackupName)
 			if (createErr) {
 				throw new IOException(`Could not create the backup directory. Aborting... (${createErr.message})`)
 			}
@@ -257,6 +274,9 @@ export class BackupManager {
 				join(destination, generatedBackupName),
 				dChanged.filter((d) => d.deleted)
 			)
+
+			// Special case: in the event an empty directory is added (create it in diff backup)
+			await this._handleCreatedEmptyDirectories(dChanged, join(destination, generatedBackupName))
 
 			// Create && update backup record for this diff backup
 			const [ backupSize, sizeError ] = await this._getTotalByteLengthOfBackup(fChanged)
@@ -306,6 +326,19 @@ export class BackupManager {
 			if (fileError || dirError) {
 				throw new BackupFilesDiscoveryException(fileError ? fileError.message : dirError.toString())
 			}
+
+			// Create the FULL backup
+			const [ _, createErr ] = await this._createDirectory(destination, generatedBackupName)
+			if (createErr) {
+				throw new IOException(`Could not create the backup directory. Aborting... (${createErr.message})`)
+			}
+			// Note: we can use copy standalone for FULL backups since they require little additional computation
+			await copy(source, `${destination}/${generatedBackupName}`, {
+				overwrite: true,
+				preserveTimestamps: true,
+				errorOnExist: false
+			})
+
 			// Create backup record to store into the database
 			const [ backupSize, sizeError ] = this._getTotalByteLengthOfBackup(fileData)
 			if (sizeError) {
@@ -323,18 +356,6 @@ export class BackupManager {
 				sourceRoot: source,
 				destRoot: join(destination, generatedBackupName)
 			}
-
-			// Create the FULL backup
-			const [ _, createErr ] = await this.createDirectory(destination, generatedBackupName)
-			if (createErr) {
-				throw new IOException(`Could not create the backup directory. Aborting... (${createErr.message})`)
-			}
-			// Note: we can use copy standalone for FULL backups since they require little additional computation
-			await copy(source, `${destination}/${generatedBackupName}`, {
-				overwrite: true,
-				preserveTimestamps: true,
-				errorOnExist: false
-			})
 
 			// Write changes to database entry (including directories & files)
 			await db.insert(RecordTable.BACKUPS, backupRecord)
