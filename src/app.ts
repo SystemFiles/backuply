@@ -38,20 +38,20 @@ import { RestoreManager } from './lib/restore'
 	// log(`(${dRecord.id}) Backup created successfully!`)
 
 	// Perform restore from differential backup
-	const testRestoreId = '29bbd081-4f1f-45ec-acbe-10c3cdfeb2e7'
-	const err = await RestoreManager.getInstance().restore(testRestoreId, join(cwd(), 'backups', 'restore'))
-	if (err) {
-		log(`Error >> ${err.message}`)
-		process.exit(2)
-	}
-	log(`Restoring ${testRestoreId} was successful!`)
-
-	// Perform restore from full backup
-	// const testRestoreId = '9dabb607-0ec7-433f-aa60-9514b4578a9f'
+	// const testRestoreId = '29bbd081-4f1f-45ec-acbe-10c3cdfeb2e7'
 	// const err = await RestoreManager.getInstance().restore(testRestoreId, join(cwd(), 'backups', 'restore'))
 	// if (err) {
 	// 	log(`Error >> ${err.message}`)
 	// 	process.exit(2)
 	// }
 	// log(`Restoring ${testRestoreId} was successful!`)
+
+	// Perform restore from full backup
+	const testRestoreId = '9dabb607-0ec7-433f-aa60-9514b4578a9f'
+	const err = await RestoreManager.getInstance().restore(testRestoreId, join(cwd(), 'backups', 'restore'))
+	if (err) {
+		log(`Error >> ${err.message}`)
+		process.exit(2)
+	}
+	log(`Restoring ${testRestoreId} was successful!`)
 })()

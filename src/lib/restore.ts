@@ -73,7 +73,8 @@ export class RestoreManager {
 		refRoot: string,
 		rootPath: string,
 		record: BackupRecord,
-		target: string
+		target: string,
+		excludeDirs: Directory[] = []
 	): Promise<Error> {
 		/*
 			Useful for restoring files from either differential backup record
@@ -82,7 +83,6 @@ export class RestoreManager {
 		try {
 			const copyPromises: Promise<void>[] = []
 			const files: FileData[] = record.fileList
-			const excludeDirs: Directory[] = refRoot ? record.directoryList : []
 			for (const f of files) {
 				let skip = false
 				for (const d of excludeDirs) {
@@ -127,7 +127,13 @@ export class RestoreManager {
 				if (mError) {
 					throw new RestoreException(`Failed to restore backup: ${backupRecord.name}. Reason: ${mError.message}`)
 				}
-				const err = await this._restoreFilesAsync(rBackupRecord.destRoot, backupRecord.destRoot, merged, target)
+				const err = await this._restoreFilesAsync(
+					rBackupRecord.destRoot,
+					backupRecord.destRoot,
+					merged,
+					target,
+					merged.directoryList
+				)
 				if (err) {
 					throw new RestoreException(`Failed to restore backup: ${backupRecord.name}. Reason: ${err.message}`)
 				}
