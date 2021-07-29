@@ -43,7 +43,12 @@ export class RestoreManager {
 			// Add all non-deleted files (unique) - Should also automatically account for files in deleted dirs
 			for (const f of fullBackup.fileList) {
 				f.fullPath = await this._updatePathRoot(f.fullPath, fullBackup.sourceRoot, fullBackup.destRoot)
-				if (!f.deleted) fileSet.add(f)
+				const relPath = f.fullPath.split(fullBackup.name).reverse()[0]
+				console.log(relPath)
+				if (!f.deleted) {
+					// Ensure no 
+					fileSet.add(f)
+				}
 			}
 			for (const f of diffBackup.fileList) {
 				f.fullPath = await this._updatePathRoot(f.fullPath, diffBackup.sourceRoot, diffBackup.destRoot)
