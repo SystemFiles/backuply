@@ -68,8 +68,6 @@ export class RestoreManager {
 				}
 			}
 
-			// console.log(fileSet)
-
 			// Combine to create a new merged backup record
 			const record: BackupRecord = {
 				id: '9999-9999-9999-9999',

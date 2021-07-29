@@ -12,7 +12,7 @@ import { RestoreManager } from './lib/restore'
 	// Perform a full backup
 	// const [ record, error ] = await BackupManager.getInstance().fullBackup(
 	// 	join(cwd(), 'dev', 'backup_source'),
-	// 	'test-backup',
+	// 	'sonar-backup',
 	// 	join(cwd(), 'dev', 'backup_dest')
 	// )
 
@@ -24,7 +24,7 @@ import { RestoreManager } from './lib/restore'
 	// BackupManager.getInstance().clearBuffers()
 
 	// Perform a diff backup
-	// const testFullId = '24c486c9-eed6-4000-be56-db4719276b2b'
+	// const testFullId = '43101254-27dc-4852-bf80-360a258d3897'
 	// const [ dRecord, dError ] = await BackupManager.getInstance().diffBackup(
 	// 	testFullId, // replace with record.id
 	// 	join(cwd(), 'dev', 'backup_source'),
@@ -38,7 +38,7 @@ import { RestoreManager } from './lib/restore'
 	// log(`(${dRecord.id}) Backup created successfully!`)
 
 	// Perform restore from differential backup
-	const testRestoreId = '90c2b57f-907a-4794-9b59-11becceef5b8'
+	const testRestoreId = '460a5b33-58ab-4da8-8dfe-0204d4779556'
 	const err = await RestoreManager.getInstance().restore(testRestoreId, join(cwd(), 'dev', 'restore'))
 	if (err) {
 		log(`Error >> ${err.message}`)
