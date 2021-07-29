@@ -17,5 +17,6 @@
 	],
 	"rules": {
 		"no-var": "warn"
-	}
+	},
+	"ignorePatterns": ["**/dev/**"]
 }

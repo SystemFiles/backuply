@@ -246,6 +246,11 @@ export class BackupManager {
 				? `${name}-${BackupType.DIFF.toLowerCase()}-${timestamp.slice(0, 10)}`
 				: `${name}`
 
+			// Ensure reference backup actually exists
+			if (!db.findRecordById(fullId)[0] || db.findRecordById(fullId)[0].type !== BackupType.FULL) {
+				throw new BackupException(`Could not find a reference full backup with ID, ${fullId}. Cannot continue`)
+			}
+
 			// Extract file and directories from backup source
 			await this._generateBackupTreeFromRoot(source)
 			// Get file and directory individual metadata
