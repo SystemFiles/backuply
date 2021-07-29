@@ -1,5 +1,5 @@
-export const config = {
-	database: {
-		path: './backups/backups.json'
+export const defaults = {
+	db: {
+		path: './dev/backup_data.json'
 	}
 }

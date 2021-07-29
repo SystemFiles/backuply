@@ -8,7 +8,7 @@
     "outDir": "dist",
     "allowSyntheticDefaultImports": true
   },
-  "lib": ["es2015"],
+  "lib": ["es2021"],
   "exclude": [
     "node_modules",
     "dev"
