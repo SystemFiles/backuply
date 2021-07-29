@@ -41,19 +41,34 @@ export class RestoreManager {
 			}
 
 			// Add all non-deleted files (unique) - Should also automatically account for files in deleted dirs
-			for (const f of fullBackup.fileList) {
-				f.fullPath = await this._updatePathRoot(f.fullPath, fullBackup.sourceRoot, fullBackup.destRoot)
-				const relPath = f.fullPath.split(fullBackup.name).reverse()[0]
-				console.log(relPath)
-				if (!f.deleted) {
-					// Ensure no 
-					fileSet.add(f)
+			for (const ff of fullBackup.fileList) {
+				ff.fullPath = await this._updatePathRoot(ff.fullPath, fullBackup.sourceRoot, fullBackup.destRoot)
+				const fbRelPath = ff.fullPath.split(fullBackup.name).reverse()[0]
+
+				// Add each file from full backup (we will make adjustments next for modified or deleted files)
+				fileSet.add(ff)
+
+				// Validate against files in the differential backup (and make modifications/replacements as necessary)
+				for (const df of diffBackup.fileList) {
+					df.fullPath = await this._updatePathRoot(df.fullPath, diffBackup.sourceRoot, diffBackup.destRoot)
+					const dbRelPath = df.fullPath.split(diffBackup.name).reverse()[0]
+					
+					if (fbRelPath === dbRelPath) {
+						// File Deleted
+						if (df.deleted) fileSet.delete(ff)
+
+						// File Modified
+						if (df.md5sum !== ff.md5sum) {
+							fileSet.delete(ff)
+							fileSet.add(df)
+						}
+					}
+					// File Added
+					fileSet.add(df)
 				}
 			}
-			for (const f of diffBackup.fileList) {
-				f.fullPath = await this._updatePathRoot(f.fullPath, diffBackup.sourceRoot, diffBackup.destRoot)
-				if (!f.deleted) fileSet.add(f)
-			}
+
+			// console.log(fileSet)
 
 			// Combine to create a new merged backup record
 			const record: BackupRecord = {
