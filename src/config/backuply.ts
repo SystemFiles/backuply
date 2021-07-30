@@ -1,5 +1,8 @@
-export const defaults = {
+import { getAppDataPath } from "../common/functions";
+import { AppConfigObject } from "../common/types";
+
+export const defaults: AppConfigObject = {
 	db: {
-		path: './dev/backup_data.json'
+		path: `${getAppDataPath()}/backup_data.json`
 	}
 }

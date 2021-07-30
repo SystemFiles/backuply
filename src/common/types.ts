@@ -38,3 +38,15 @@ export type RecordType = {
 	backups: BackupRecord[]
 	archive: BackupRecord[]
 }
+
+// App Config
+export type SomeConfigData = string|Record<string, unknown>
+
+export type AppConfigObject = {
+	db: SomeConfigData
+}
+
+export type ConfigStoreOptions = {
+	configName: string,
+	defaults?: AppConfigObject
+}

@@ -19,7 +19,7 @@ export class DatabaseManager {
       if (error) {
         throw new Error(`Could not create database instance. Reason: ${error.message}`)
       }
-      DatabaseManager.instance = new DatabaseManager(path ? path : value)
+      DatabaseManager.instance = new DatabaseManager(path ? path : value.toString())
     }
 
     return DatabaseManager.instance
