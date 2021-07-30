@@ -13,6 +13,8 @@ export function parseArgs(): void {
 				description: 'Configure the path to the local database used to store backup metadata'
 			})
 	})
+
+	// Configure custom backups
 	cmd.command('backup', 'performs a custom backup of a select directory(s)', (yargs) => {
 		return yargs
 		.positional('name', {
@@ -37,18 +39,15 @@ export function parseArgs(): void {
 		})
 	})
 
+	// Restore from backup
 	cmd.command('restore', 'perform a restore from a target backup', (yargs) => {
-		yargs.positional('id', {
-			describe: 'the full uuid for the backup restore',
+		yargs.positional('ref', {
+			describe: 'the full uuid or name for the backup to restore',
 			type: 'string'
 		})
 		.positional('dest', {
 			describe: 'path to destination restore directory',
 			type: 'string'
-		})
-		.option('name', {
-			description: 'specifies that the id will be a backup name (not this may fail if multiple backups are created for the same day)',
-			type: 'boolean'
 		})
 	})
 

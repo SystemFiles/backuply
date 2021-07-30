@@ -1,6 +1,7 @@
 import figlet from "figlet";
 import { userInfo } from "os";
 import { PACKAGE_NAME } from "./constants";
+import { BackupRecord } from "./types";
 
 // Pure getAppDataPath
 export function getAppDataPath(): string {
@@ -22,6 +23,11 @@ export function sayHello(): void {
 	console.clear()
 	console.log(`${figlet.textSync(PACKAGE_NAME,
 		{ horizontalLayout: 'full' })}\n\n`)
+}
+
+// Record display
+export function ppRecord(record: BackupRecord): void {
+	// TODO
 }
 
 // Native JS pure function for calculating file hash using MD5 algorithm
