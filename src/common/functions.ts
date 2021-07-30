@@ -3,7 +3,7 @@ import { userInfo } from "os";
 import { PACKAGE_NAME } from "./constants";
 
 // Pure getAppDataPath
-export const getAppDataPath = () => {
+export function getAppDataPath(): string {
 	switch (process.platform) {
 		case 'win32':
 			return `%appdata%/localLow/${PACKAGE_NAME}`
@@ -18,13 +18,10 @@ export const getAppDataPath = () => {
 }
 
 // App Say
-export const sayHello = () => {
-	figlet(PACKAGE_NAME, (err) => {
-		if (err) {
-			// We can safely just ignore this if something bad happens here
-			return
-		}
-	})
+export function sayHello(): void {
+	console.clear()
+	console.log(`${figlet.textSync(PACKAGE_NAME,
+		{ horizontalLayout: 'full' })}\n\n`)
 }
 
 // Native JS pure function for calculating file hash using MD5 algorithm
