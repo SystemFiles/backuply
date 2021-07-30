@@ -1,4 +1,3 @@
-import { DB_PATH_KEY } from "../common/constants"
 import { AppConfigObject, SomeConfigData } from "../common/types"
 import { ConfigStore } from "./configstore"
 
@@ -26,15 +25,6 @@ export class AppConfig {
   setValue(key: string, value: SomeConfigData): [ string, Error ] {
     const err = this.store.set(key, value)
     if (err) return [ null, err ]
-    return [ key, null ]
-  }
-
-  changeDatabaseLocation(path: string): [ string, Error ] {
-    try {
-      this.store.set(DB_PATH_KEY, path)
-      return [ path, null ]
-    } catch (err) {
-      return [ null, err ]
-    }
+    return [ JSON.stringify(value), null ]
   }
 }

@@ -1,3 +1,4 @@
+import figlet from "figlet";
 import { userInfo } from "os";
 import { PACKAGE_NAME } from "./constants";
 
@@ -14,6 +15,16 @@ export const getAppDataPath = () => {
 		default:
 			throw new Error(`Failed to determine appropriate AppData path for this OS.`)
 	}
+}
+
+// App Say
+export const sayHello = () => {
+	figlet(PACKAGE_NAME, (err) => {
+		if (err) {
+			// We can safely just ignore this if something bad happens here
+			return
+		}
+	})
 }
 
 // Native JS pure function for calculating file hash using MD5 algorithm

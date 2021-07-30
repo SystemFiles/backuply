@@ -1,8 +1,8 @@
 // Entrypoint to application
-import { join } from 'path/posix';
-import { cwd } from 'process';
 import { argv } from 'yargs'
 import { parseArgs } from './common/commands/parsing';
+import { sayHello } from './common/functions';
+import { AppConfig } from './lib/configuration';
 import { DatabaseManager } from './lib/database';
 import { log } from "./lib/logger";
 
@@ -10,12 +10,27 @@ import { log } from "./lib/logger";
 parseArgs()
 
 const run = async () => {
+	sayHello()
+	// Perform all app configurations first
+	if (`${argv['_']}` === 'config') {
+		const conf = AppConfig.getInstance()
+		const options = Object.keys(argv).slice(1)
+		for (const opt of options) {
+			if (opt !== '$0') {
+				const [ newVal, setErr ] = conf.setValue(opt, argv[opt])
+				if (setErr) {
+					log(`FATAL: Failed to set ${opt} in App Config ...`)
+					process.exit(1)
+				}
+				log(`Setting config option ${opt}: ${newVal} ... done ✔`)
+			}
+		}
+	}
+
 	// Init database
-	const db = DatabaseManager.getInstance(`${join(cwd(), argv['db'].path)}` || null)
+	const db = DatabaseManager.getInstance()
 	db.init()
 
-	// Show title for application (figlet)
-	
 }
 
 // Run from entrypoint

@@ -50,7 +50,6 @@ export class ConfigStore {
 
   private parseDataFile(defaults?: AppConfigObject): AppConfigObject {
     try {
-      console.log(path.dirname(this.path))
       return JSON.parse(readFileSync(this.path).toString('utf8'))
     } catch (err) {
       // Use defaults

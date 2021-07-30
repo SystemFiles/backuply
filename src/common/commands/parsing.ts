@@ -1,4 +1,4 @@
-import yargs from 'yargs'
+import yargs, { argv } from 'yargs'
 import { hideBin } from 'yargs/helpers'
 
 // Handle parse args
@@ -6,11 +6,13 @@ export function parseArgs(): void {
 	const cmd = yargs(hideBin(process.argv))
 
 	// Set options
-	cmd.command('config', 'configure backuply')
-		.option('db.path', {
-			type: 'string',
-			description: 'Configure the path to the local database used to store backup metadata'
-		})
+	cmd.command('config', 'configure backuply', (yargs) => {
+		return yargs
+			.option('db.path', {
+				type: 'string',
+				description: 'Configure the path to the local database used to store backup metadata'
+			})
+	})
 	cmd.command('backup', 'performs a custom backup of a select directory(s)', (yargs) => {
 		return yargs
 		.positional('name', {
@@ -25,7 +27,6 @@ export function parseArgs(): void {
 			describe: 'the destination path which will contain the backup.',
 			type: 'string'
 		})
-	})
 		.option('ref.id', {
 			description: 'a reference id for the full backup used in generating a differential backup based on the reference.',
 			type: 'string'
@@ -34,6 +35,8 @@ export function parseArgs(): void {
 			description: 'a reference name for the full backup used in generating a differential backup based on the reference.',
 			type: 'string'
 		})
+	})
+
 	cmd.command('restore', 'perform a restore from a target backup', (yargs) => {
 		yargs.positional('id', {
 			describe: 'the full uuid for the backup restore',
@@ -43,10 +46,14 @@ export function parseArgs(): void {
 			describe: 'path to destination restore directory',
 			type: 'string'
 		})
-	})
 		.option('name', {
 			description: 'specifies that the id will be a backup name (not this may fail if multiple backups are created for the same day)',
 			type: 'boolean'
 		})
-	cmd.showHelpOnFail(false, 'whoops, we cannot determine what you want to do. Run with --help to see usage instructions').argv
+	})
+
+	// Set general parse config
+	cmd.usage('Usage: $0 <command> [options...]')
+		.demandCommand(1)
+		.argv
 }

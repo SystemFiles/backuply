@@ -2,7 +2,7 @@ import { JSONFile, Low } from 'lowdb'
 import { BackupRecord, RecordTable, RecordType } from '../common/types'
 import { RecordNotFoundException } from '../common/exceptions' 
 import { AppConfig } from './configuration'
-import { DB_PATH_KEY } from '../common/constants'
+import { DB_KEY } from '../common/constants'
 
 export class DatabaseManager {
   private static instance: DatabaseManager
@@ -15,11 +15,11 @@ export class DatabaseManager {
 
   public static getInstance(path?: string): DatabaseManager {
     if (!DatabaseManager.instance) {
-      const [ value, error ] = AppConfig.getInstance().getValue(DB_PATH_KEY)
+      const [ value, error ] = AppConfig.getInstance().getValue(DB_KEY)
       if (error) {
         throw new Error(`Could not create database instance. Reason: ${error.message}`)
       }
-      DatabaseManager.instance = new DatabaseManager(path ? path : value.toString())
+      DatabaseManager.instance = new DatabaseManager(path ? path : value['path'].toString())
     }
 
     return DatabaseManager.instance
