@@ -1,57 +1,39 @@
-import { join } from 'path/posix'
-import { cwd } from 'process'
-import { DatabaseManager } from './lib/database'
-import { BackupManager } from './lib/backup'
-import { log } from './lib/logger'
-import { RestoreManager } from './lib/restore'
-;(async () => {
-	// Init db resources
-	const dbRef = DatabaseManager.getInstance(join(cwd(), 'dev', 'backup_db.json'))
-	await dbRef.init()
+// Entrypoint to application
+import { argv } from 'yargs'
+import { parseArgs } from './common/commands/parsing';
+import { sayHello } from './common/functions';
+import { AppConfig } from './lib/configuration';
+import { DatabaseManager } from './lib/database';
+import { log } from "./lib/logger";
 
-	// Perform a full backup
-	// const [ record, error ] = await BackupManager.getInstance().fullBackup(
-	// 	join(cwd(), 'dev', 'backup_source'),
-	// 	'sonar-backup',
-	// 	join(cwd(), 'dev', 'backup_dest')
-	// )
+// Define commandline options
+parseArgs()
 
-	// if (error) {
-	// 	log(`There was a problem creating the backup. Reason: ${error.message}`)
-	// 	process.exit(2)
-	// }
-	// log(`(${record.id}) Backup created successfully!`)
-	// BackupManager.getInstance().clearBuffers()
-
-	// Perform a diff backup
-	// const testFullId = '43101254-27dc-4852-bf80-360a258d3897'
-	// const [ dRecord, dError ] = await BackupManager.getInstance().diffBackup(
-	// 	testFullId, // replace with record.id
-	// 	join(cwd(), 'dev', 'backup_source'),
-	// 	'test-backup',
-	// 	join(cwd(), 'dev', 'backup_dest')
-	// )
-	// if (dError) {
-	// 	log(`Error >> ${dError.message}`)
-	// 	process.exit(2)
-	// }
-	// log(`(${dRecord.id}) Backup created successfully!`)
-
-	// Perform restore from differential backup
-	const testRestoreId = '460a5b33-58ab-4da8-8dfe-0204d4779556'
-	const err = await RestoreManager.getInstance().restore(testRestoreId, join(cwd(), 'dev', 'restore'))
-	if (err) {
-		log(`Error >> ${err.message}`)
-		process.exit(2)
+const run = async () => {
+	sayHello()
+	// Perform all app configurations first
+	if (`${argv['_']}` === 'config') {
+		const conf = AppConfig.getInstance()
+		const options = Object.keys(argv).slice(1)
+		for (const opt of options) {
+			if (opt !== '$0') {
+				const [ newVal, setErr ] = conf.setValue(opt, argv[opt])
+				if (setErr) {
+					log(`FATAL: Failed to set ${opt} in App Config ...`)
+					process.exit(1)
+				}
+				log(`Setting config option ${opt}: ${newVal} ... done ✔`)
+			}
+		}
 	}
-	log(`Restoring ${testRestoreId} was successful!`)
 
-	// Perform restore from full backup
-	// const testRestoreId = '9dabb607-0ec7-433f-aa60-9514b4578a9f'
-	// const err = await RestoreManager.getInstance().restore(testRestoreId, join(cwd(), 'backups', 'restore'))
-	// if (err) {
-	// 	log(`Error >> ${err.message}`)
-	// 	process.exit(2)
-	// }
-	// log(`Restoring ${testRestoreId} was successful!`)
-})()
+	// Init database
+	const db = DatabaseManager.getInstance()
+	db.init()
+
+}
+
+// Run from entrypoint
+run().then(() => {
+	console.log('finished')
+})

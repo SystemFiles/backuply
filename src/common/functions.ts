@@ -1,3 +1,29 @@
+import figlet from "figlet";
+import { userInfo } from "os";
+import { PACKAGE_NAME } from "./constants";
+
+// Pure getAppDataPath
+export function getAppDataPath(): string {
+	switch (process.platform) {
+		case 'win32':
+			return `%appdata%/localLow/${PACKAGE_NAME}`
+		case 'linux':
+			return `/home/${userInfo().username}/.config/${PACKAGE_NAME}`
+		case 'darwin':
+			// Mac OSX
+			return `/Users/${userInfo().username}/Library/Application Support/${PACKAGE_NAME}`
+		default:
+			throw new Error(`Failed to determine appropriate AppData path for this OS.`)
+	}
+}
+
+// App Say
+export function sayHello(): void {
+	console.clear()
+	console.log(`${figlet.textSync(PACKAGE_NAME,
+		{ horizontalLayout: 'full' })}\n\n`)
+}
+
 // Native JS pure function for calculating file hash using MD5 algorithm
 export const MD5 = function(d: string): string {
 	const r = M(V(Y(X(d), 8 * d.length)))
