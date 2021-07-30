@@ -30,12 +30,12 @@ const run = async () => {
 
 	// Init: database
 	const db = DatabaseManager.getInstance()
-	db.init()
+	await db.init()
 
 	// Handle: Perform backup and restore operations
 	switch (argv['_'].toString()) {
 		case 'backup': {
-			const [ res, err ] = await makeBackup(argv['name'], argv['source'], argv['dest'], argv['ref'].id || argv['ref'].name)
+			const [ res, err ] = await makeBackup(argv['name'], argv['source'], argv['dest'], argv['ref'] || null)
 
 			if (err) {
 				log(`Something went wrong creating the backup. Reason: ${err.message}`)

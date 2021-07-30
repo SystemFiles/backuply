@@ -1,10 +1,12 @@
+import { join } from "path/posix"
+import { cwd } from "process"
 import { BackupManager } from "../../lib/backup"
 import { BackupRecord } from "../types"
 
 export async function makeBackup(name: string, src: string, dest: string, ref?: string): Promise<[ BackupRecord, Error ]> {
   try {
     // Validate input
-    if (!name || name.length === 0 || !src || src.length === 0 || !dest || dest.length === 0) {
+    if (!name || name.length === 0 || !dest || dest.length === 0) {
       return [ null, new Error(`Invalid options specified...`) ]
     }
 
@@ -12,7 +14,7 @@ export async function makeBackup(name: string, src: string, dest: string, ref?: 
     if (ref && ref.length > 0) return await differentialBackup(name, src, dest, ref)
 
     // Full backup
-    return await fullBackup(name, src, dest)
+    if (src && src.length > 0) return await fullBackup(name, src, dest)
   } catch (err) {
     return [ null, err ]
   }
@@ -30,7 +32,7 @@ export async function differentialBackup(name: string, src: string, dest: string
     // Perform the backup and return
     const mgr: BackupManager = BackupManager.getInstance()
     mgr.clearBuffers()
-    return await mgr.diffBackup(refId, src, name, dest)
+    return await mgr.diffBackup(refId, join(cwd(), src), name, join(cwd(), dest))
   } catch (err) {
     return [ null, err ]
   }
@@ -39,5 +41,5 @@ export async function differentialBackup(name: string, src: string, dest: string
 export async function fullBackup(name: string, src: string, dest: string): Promise<[ BackupRecord, Error ]> {
   const mgr: BackupManager = BackupManager.getInstance()
   mgr.clearBuffers()
-  return mgr.fullBackup(src, name, dest)
+  return mgr.fullBackup(join(cwd(), src), name, join(cwd(), dest))
 }

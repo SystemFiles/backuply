@@ -29,12 +29,8 @@ export function parseArgs(): void {
 			describe: 'the destination path which will contain the backup.',
 			type: 'string'
 		})
-		.option('ref.id', {
-			description: 'a reference id for the full backup used in generating a differential backup based on the reference.',
-			type: 'string'
-		})
-		.option('ref.name', {
-			description: 'a reference name for the full backup used in generating a differential backup based on the reference.',
+		.option('ref', {
+			description: 'a reference id or name for the full backup used in generating a differential backup based on the reference.',
 			type: 'string'
 		})
 	})

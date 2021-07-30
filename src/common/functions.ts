@@ -27,7 +27,17 @@ export function sayHello(): void {
 
 // Record display
 export function ppRecord(record: BackupRecord): void {
-	// TODO
+	const tableData = [
+		{ attribute: 'id', value: record.id },
+		{ attribute: 'name', value: record.name },
+		{ attribute: 'created', value: record.created },
+		{ attribute: 'type', value: record.type.toString() },
+		{ attribute: 'reference_backup', value: record.basedOn },
+		{ attribute: 'size', value: `${record.bytelength / 1024 / 1024} MB` },
+		{ attribute: 'source', value: record.sourceRoot },
+		{ attribute: 'location', value: record.destRoot }
+	]
+	console.table(tableData)
 }
 
 // Native JS pure function for calculating file hash using MD5 algorithm
