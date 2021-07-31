@@ -5,12 +5,12 @@ function _getCallingFunction() {
   const e = new Error()
 	// matches this function, the caller and the parent
 	const allMatches = e.stack.match(/(\w+)@|at (\w+) \((.*)/g)
-	
-	// TODO: continue debugging this one from here
-	console.log(allMatches)
+
+	// TODO: continue debugging here...
 
 	// match parent function name and path
-	const parentMatches = allMatches[2].match(/(\w+)@|at (\w+) \((.*)/)
+	const allMatchesValid = allMatches[allMatches.length-1] || allMatches[1]
+	const parentMatches = allMatchesValid.match(/(\w+)@|at (\w+) \((.*)/)
 
 	// return caller function name and file
 	return {
