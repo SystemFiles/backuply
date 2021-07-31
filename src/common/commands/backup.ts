@@ -1,5 +1,5 @@
 import ora from "ora"
-import { join } from "path/posix"
+import { resolve } from "path/posix"
 import { cwd } from "process"
 import { BackupManager } from "../../lib/backup"
 import { log } from "../../lib/logger"
@@ -42,7 +42,7 @@ export async function differentialBackup(name: string, src: string, dest: string
 
     // Loading indicator (UI)
     const spinner = ora('Creating differential backup ...').start()
-    const res = await mgr.diffBackup(refId, join(cwd(), src), name, join(cwd(), dest))
+    const res = await mgr.diffBackup(refId, resolve(cwd(), src), name, resolve(cwd(), dest))
     spinner.stop()
     return res
   } catch (err) {
@@ -57,7 +57,7 @@ export async function fullBackup(name: string, src: string, dest: string): Promi
   
   // Loading indicator (UI)
   const spinner = ora('Creating full backup ...').start()
-  const res = await mgr.fullBackup(join(cwd(), src), name, join(cwd(), dest))
+  const res = await mgr.fullBackup(resolve(cwd(), src), name, resolve(cwd(), dest))
   spinner.stop()
   return res
 }

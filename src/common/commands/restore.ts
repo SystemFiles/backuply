@@ -1,5 +1,5 @@
 import ora from "ora";
-import { join } from "path/posix";
+import { resolve } from "path/posix";
 import { cwd } from "process";
 import { log } from "../../lib/logger";
 import { RestoreManager } from "../../lib/restore";
@@ -23,7 +23,7 @@ export async function restoreBackup(ref: string, dest: string): Promise<[ string
   // Loading indicator (UI)
   const spinner = ora(`Restoring backup for ${refId} ...`).start()
   const mgr: RestoreManager = RestoreManager.getInstance()
-  const err = await mgr.restore(refId, join(cwd(), dest))
+  const err = await mgr.restore(refId, resolve(cwd(), dest))
   spinner.stop()
 
   if (err) {

@@ -25,7 +25,7 @@ export function sayHello(): void {
 		{ horizontalLayout: 'full' })}\n\n`)
 }
 
-// Record display
+// Record display (pretty print)
 export function ppRecord(record: BackupRecord): void {
 	const tableData = [
 		{ attribute: 'id', value: record.id },
@@ -33,7 +33,7 @@ export function ppRecord(record: BackupRecord): void {
 		{ attribute: 'created', value: record.created },
 		{ attribute: 'type', value: record.type.toString() },
 		{ attribute: 'reference_backup', value: record.basedOn },
-		{ attribute: 'size', value: `${record.bytelength / 1024 / 1024} MB` },
+		{ attribute: 'size', value: `${Math.round(record.bytelength / 1024 / 1024)} MB` },
 		{ attribute: 'source', value: record.sourceRoot },
 		{ attribute: 'location', value: record.destRoot }
 	]
