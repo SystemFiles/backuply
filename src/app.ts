@@ -27,6 +27,8 @@ const run = async () => {
 				log(`Setting config option ${opt}: ${newVal} ... done ✔`)
 			}
 		}
+		// Cleanly exit
+		process.exit(0)
 	}
 
 	// Init: database

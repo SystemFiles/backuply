@@ -44,6 +44,7 @@ export type SomeConfigData = string|Record<string, unknown>
 
 export type AppConfigObject = {
 	db: SomeConfigData
+	log: SomeConfigData
 }
 
 export type ConfigStoreOptions = {
