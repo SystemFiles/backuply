@@ -40,6 +40,7 @@ const run = async () => {
 
 			if (err) {
 				log(`Something went wrong creating the backup. Reason: ${err.message}`)
+				process.exit(1)
 			}
 
 			log(`Backup successfully created. See details below:\n`)
@@ -51,6 +52,7 @@ const run = async () => {
 
 			if (err) {
 				log(`Something went wrong when attempting to restore a backup. Reason: ${err.message}`)
+				process.exit(1)
 			}
 
 			log(`Backup with ID, ${res}, successfully restored to ${argv['dest']}`)
@@ -61,12 +63,10 @@ const run = async () => {
 			process.exit(2)
 		}
 	}
-
-	// Do any clean up necessary and exit
-	process.exit(0)
 }
 
 // Run from entrypoint
 run().then(() => {
-	// TODO: fill in completion details/handlers
+	// Do any clean up necessary and exit
+	process.exit(0)
 })

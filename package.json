@@ -4,7 +4,7 @@
   "description": "A simple backup client for automating schedule file backups safely",
   "main": "app.js",
   "scripts": {
-    "start": "NODE_ENV=dev tsc && node dist/app.js restore --ref fb4cc904-14b4-486c-99ea-c7f07d2e1454 --dest ./dev/restore",
+    "start": "NODE_ENV=dev tsc && node dist/app.js backup --name media --source ./dev/source --dest ./dev/dest",
     "lint": "NODE_ENV=test eslint \"{src,libs,test}/**/*.ts\" --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

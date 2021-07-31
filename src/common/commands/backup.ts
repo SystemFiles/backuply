@@ -43,7 +43,7 @@ export async function differentialBackup(name: string, src: string, dest: string
     // Loading indicator (UI)
     const spinner = ora('Creating differential backup ...').start()
     const res = await mgr.diffBackup(refId, join(cwd(), src), name, join(cwd(), dest))
-    spinner.stopAndPersist({text: `Backup completed.`})
+    spinner.stop()
     return res
   } catch (err) {
     return [ null, err ]
@@ -58,6 +58,6 @@ export async function fullBackup(name: string, src: string, dest: string): Promi
   // Loading indicator (UI)
   const spinner = ora('Creating full backup ...').start()
   const res = await mgr.fullBackup(join(cwd(), src), name, join(cwd(), dest))
-  spinner.stopAndPersist({text: `Backup completed.`})
+  spinner.stop()
   return res
 }

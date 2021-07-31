@@ -24,7 +24,7 @@ export async function restoreBackup(ref: string, dest: string): Promise<[ string
   const spinner = ora(`Restoring backup for ${refId} ...`).start()
   const mgr: RestoreManager = RestoreManager.getInstance()
   const err = await mgr.restore(refId, join(cwd(), dest))
-  spinner.stopAndPersist({text: `Restore completed.`})
+  spinner.stop()
 
   if (err) {
     return [ null, err ]
