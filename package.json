@@ -4,7 +4,7 @@
   "description": "A simple backup client for automating schedule file backups safely",
   "main": "app.js",
   "scripts": {
-    "start": "NODE_ENV=dev tsc && node dist/app.js backup --name sonarr-backup --source ./dev/source --dest ./dev/dest",
+    "start": "NODE_ENV=dev tsc && node dist/app.js restore --ref fb4cc904-14b4-486c-99ea-c7f07d2e1454 --dest ./dev/restore",
     "lint": "NODE_ENV=test eslint \"{src,libs,test}/**/*.ts\" --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -30,6 +30,7 @@
     "@types/figlet": "^1.5.4",
     "@types/fs-extra": "^9.0.11",
     "@types/node": "^15.6.1",
+    "@types/ora": "^3.2.0",
     "@types/uuid": "^8.3.0",
     "@types/yargs": "^17.0.2",
     "@typescript-eslint/eslint-plugin": "^4.25.0",
@@ -42,6 +43,7 @@
     "figlet": "^1.5.0",
     "fs-extra": "^10.0.0",
     "lowdb": "github:dankreiger/lowdb#chore/esm-cjs-hybrid-WITH-LIB",
+    "ora": "^5.4.1",
     "uuid": "^8.3.2",
     "yargs": "^17.0.1"
   }

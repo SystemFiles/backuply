@@ -2,6 +2,7 @@
 import { argv } from 'yargs'
 import { makeBackup } from './common/commands/backup';
 import { parseArgs } from './common/commands/parsing';
+import { restoreBackup } from './common/commands/restore';
 import { ppRecord, sayHello } from './common/functions';
 import { AppConfig } from './lib/configuration';
 import { DatabaseManager } from './lib/database';
@@ -41,16 +42,23 @@ const run = async () => {
 				log(`Something went wrong creating the backup. Reason: ${err.message}`)
 			}
 
+			log(`Backup successfully created. See details below:\n`)
 			ppRecord(res) // Print the created record in a pretty way :p
 			break;
 		}
 		case 'restore': {
-			// TODO: restore implementation in /common/commands/restore.ts
-			console.log('restore ...')
+			const [ res, err ] = await restoreBackup(argv['ref'], argv['dest'])
+
+			if (err) {
+				log(`Something went wrong when attempting to restore a backup. Reason: ${err.message}`)
+			}
+
+			log(`Backup with ID, ${res}, successfully restored to ${argv['dest']}`)
 			break;
 		}
 		default: {
-			console.log('FINISHED!')
+			log(`WARN: Invalid command specified`)
+			process.exit(2)
 		}
 	}
 
