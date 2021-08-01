@@ -1,8 +1,7 @@
-import { mkdir, stat, readdir, readFile } from 'fs/promises'
+import { mkdir, stat, readdir } from 'fs/promises'
 import { join } from 'path'
 import { copy, pathExists } from 'fs-extra'
 import { BackupRecord, BackupType, Directory, FileData, RecordTable } from '../common/types.js'
-import { MD5 } from '../common/functions.js'
 import { v4 as uuid } from 'uuid'
 import {
 	BackupException,
@@ -193,7 +192,7 @@ export class BackupManager {
 				rs.on('end', () => {
 					resolve(hash.digest('hex'))
 				})
-				rs.on('error', (err) => { throw new Error(`Failed to calculate hash. Reason: ${err}`) })
+				rs.on('error', (err) => { reject(new Error(`Failed to calculate hash. Reason: ${err}`)) })
 				rs.on('data', (chunk: Buffer) => {
 					totalBytesRead += chunk.byteLength
 					
