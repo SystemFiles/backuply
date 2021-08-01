@@ -1,25 +1,25 @@
 // Entrypoint to application
-import { argv } from 'yargs'
-import { makeBackup } from './common/commands/backup';
-import { parseArgs } from './common/commands/parsing';
-import { restoreBackup } from './common/commands/restore';
-import { ppRecord, sayHello } from './common/functions';
-import { AppConfig } from './lib/configuration';
-import { DatabaseManager } from './lib/database';
-import { log } from "./lib/logger";
+import { makeBackup } from './common/commands/backup.js';
+import { parseArgs } from './common/commands/parsing.js';
+import { restoreBackup } from './common/commands/restore.js';
+import { ppRecord, sayHello } from './common/functions.js';
+import { AppConfig } from './lib/configuration.js';
+import { DatabaseManager } from './lib/database.js';
+import { log } from "./lib/logger.js";
 
 // Define commandline options
-parseArgs()
+const cmdArgs = parseArgs()
 
 const run = async () => {
 	sayHello()
 	// Handle: Perform all app configurations first
-	if (argv['_'].toString() === 'config') {
+
+	if (cmdArgs['_'].toString() === 'config') {
 		const conf = AppConfig.getInstance()
-		const options = Object.keys(argv).slice(1)
+		const options = Object.keys(cmdArgs).slice(1)
 		for (const opt of options) {
 			if (opt !== '$0') {
-				const [ newVal, setErr ] = conf.setValue(opt, argv[opt])
+				const [ newVal, setErr ] = conf.setValue(opt, cmdArgs[opt])
 				if (setErr) {
 					log(`FATAL: Failed to set ${opt} in App Config ...`)
 					process.exit(1)
@@ -36,9 +36,9 @@ const run = async () => {
 	await db.init()
 
 	// Handle: Perform backup and restore operations
-	switch (argv['_'].toString()) {
+	switch (cmdArgs['_'].toString()) {
 		case 'backup': {
-			const [ res, err ] = await makeBackup(argv['name'], argv['source'], argv['dest'], argv['ref'] || null)
+			const [ res, err ] = await makeBackup(cmdArgs['name'], cmdArgs['source'], cmdArgs['dest'], cmdArgs['ref'] || null)
 
 			if (err) {
 				log(`Something went wrong creating the backup. Reason: ${err.message}`)
@@ -50,14 +50,14 @@ const run = async () => {
 			break;
 		}
 		case 'restore': {
-			const [ res, err ] = await restoreBackup(argv['ref'], argv['dest'])
+			const [ res, err ] = await restoreBackup(cmdArgs['ref'], cmdArgs['dest'])
 
 			if (err) {
 				log(`Something went wrong when attempting to restore a backup. Reason: ${err.message}`)
 				process.exit(1)
 			}
 
-			log(`Backup with ID, ${res}, successfully restored to ${argv['dest']}`)
+			log(`Backup with ID, ${res}, successfully restored to ${cmdArgs['dest']}`)
 			break;
 		}
 		default: {

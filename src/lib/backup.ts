@@ -1,17 +1,17 @@
 import { mkdir, stat, readdir, readFile } from 'fs/promises'
 import { join } from 'path'
 import { copy, pathExists } from 'fs-extra'
-import { BackupRecord, BackupType, Directory, FileData, RecordTable } from '../common/types'
-import { MD5 } from '../common/functions'
+import { BackupRecord, BackupType, Directory, FileData, RecordTable } from '../common/types.js'
+import { MD5 } from '../common/functions.js'
 import { v4 as uuid } from 'uuid'
 import {
 	BackupException,
 	BackupFilesDiscoveryException,
 	DatabaseReadException,
 	IOException
-} from '../common/exceptions'
-import { DatabaseManager } from './database'
-import { log } from './logger'
+} from '../common/exceptions.js'
+import { DatabaseManager } from './database.js'
+import { log } from './logger.js'
 
 export class BackupManager {
 	private static instance: BackupManager

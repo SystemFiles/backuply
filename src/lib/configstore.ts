@@ -1,9 +1,9 @@
 import { readFileSync, writeFileSync } from "fs";
 import { mkdirpSync } from "fs-extra";
 import path, { join } from "path/posix";
-import { getAppDataPath } from "../common/functions";
-import { AppConfigObject, ConfigStoreOptions, SomeConfigData } from "../common/types";
-import { defaults } from "../config/backuply";
+import { getAppDataPath } from "../common/functions.js";
+import { AppConfigObject, ConfigStoreOptions, SomeConfigData } from "../common/types.js";
+import { defaults } from "../config/backuply.js";
 
 export class ConfigStore {
   private path: string

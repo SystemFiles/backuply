@@ -1,8 +1,8 @@
 import { copy } from 'fs-extra'
 import { join } from 'path/posix'
-import { DatabaseReadException, RestoreException } from '../common/exceptions'
-import { BackupRecord, BackupType, Directory, FileData } from '../common/types'
-import { DatabaseManager } from './database'
+import { DatabaseReadException, RestoreException } from '../common/exceptions.js'
+import { BackupRecord, BackupType, Directory, FileData } from '../common/types.js'
+import { DatabaseManager } from './database.js'
 
 export class RestoreManager {
 	private static instance: RestoreManager

@@ -1,8 +1,8 @@
 import ora from "ora";
 import { resolve } from "path/posix";
 import { cwd } from "process";
-import { log } from "../../lib/logger";
-import { RestoreManager } from "../../lib/restore";
+import { log } from "../../lib/logger.js";
+import { RestoreManager } from "../../lib/restore.js";
 
 export async function restoreBackup(ref: string, dest: string): Promise<[ string, Error ]> {
   if (!ref || ref.length === 0 || !dest || dest.length === 0) {
