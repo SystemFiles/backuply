@@ -183,7 +183,7 @@ export class BackupManager {
 
 	private async _getFileSizeAndHash(file: string): Promise<[ { checksum: string; byteLength: number }, Error ]> {
 		try {
-			let hash = createHash(this.HASH_ALGO)
+			const hash = createHash(this.HASH_ALGO)
 			const rs: ReadStream = createReadStream(file)
 			let totalBytesRead = 0
 			rs.pipe(hash)
@@ -195,9 +195,6 @@ export class BackupManager {
 				rs.on('error', (err) => { reject(new Error(`Failed to calculate hash. Reason: ${err}`)) })
 				rs.on('data', (chunk: Buffer) => {
 					totalBytesRead += chunk.byteLength
-					
-					// Recalculate the hash instance (https://stackoverflow.com/questions/44855529/using-crypto-node-js-library-unable-to-create-sha-256-hashes-multiple-times-in)
-					hash = createHash(this.HASH_ALGO)
 					hash.update(chunk)
 				})
 			})
