@@ -1,12 +1,12 @@
 {
   "name": "backuply",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A simple backup client for automating schedule file backups safely",
   "main": "app.js",
   "scripts": {
     "start": "NODE_ENV=dev tsc && node dist/app.js backup --name backup-of-backups --source /Users/bensykes/Documents/NoSync-Projects/spam_slate/ --dest ./dev/dest",
     "lint": "NODE_ENV=test eslint \"{src,libs,test}/**/*.ts\" --fix",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"WARN: no test specified\" && exit 0"
   },
   "repository": {
     "type": "git",
