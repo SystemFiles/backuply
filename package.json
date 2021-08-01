@@ -1,12 +1,14 @@
 {
   "name": "backuply",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A simple backup client for automating schedule file backups safely",
-  "main": "app.js",
+  "main": "dist/app.js",
+  "types": "dist/app.d.ts",
   "scripts": {
     "start": "NODE_ENV=dev tsc && node dist/app.js backup --name backup-of-backups --source /Users/bensykes/Documents/NoSync-Projects/spam_slate/ --dest ./dev/dest",
+    "build": "NODE_ENV=production tsc",
     "lint": "NODE_ENV=test eslint \"{src,libs,test}/**/*.ts\" --fix",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"WARN: no test specified\" && exit 0"
   },
   "repository": {
     "type": "git",
@@ -30,13 +32,11 @@
     "@types/figlet": "^1.5.4",
     "@types/fs-extra": "^9.0.11",
     "@types/node": "^15.6.1",
-    "@types/ora": "^3.2.0",
     "@types/uuid": "^8.3.0",
     "@types/yargs": "^17.0.2",
     "@typescript-eslint/eslint-plugin": "^4.25.0",
     "@typescript-eslint/parser": "^4.25.0",
     "eslint": "^7.27.0",
-    "tslint": "^6.1.3",
     "typescript": "^4.3.2"
   },
   "dependencies": {

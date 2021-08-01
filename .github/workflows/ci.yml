@@ -1,0 +1,33 @@
+name: CI
+
+on: push
+
+jobs:
+  lint:
+    name: ESLint & TSLint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '15'
+      - name: Install required dependencies and Lint
+        working-directory: "./"
+        run: |
+          npm install --only=dev
+          npm run lint
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '15'
+      - name: Install dependencies
+        working-directory: "./"
+        run: |
+          npm install
+          npm run test

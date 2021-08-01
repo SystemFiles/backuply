@@ -6,11 +6,13 @@
     "moduleResolution": "node",
     "sourceMap": true,
     "outDir": "dist",
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "declaration": true
   },
   "lib": ["es2021"],
   "exclude": [
     "node_modules",
-    "dev"
+    "dev",
+    "dist"
   ]
 }
