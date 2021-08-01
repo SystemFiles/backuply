@@ -1,5 +1,4 @@
 // Entrypoint to application
-import yargs from 'yargs';
 import { makeBackup } from './common/commands/backup.js';
 import { parseArgs } from './common/commands/parsing.js';
 import { restoreBackup } from './common/commands/restore.js';
