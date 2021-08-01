@@ -12,9 +12,12 @@ import {
 } from '../common/exceptions.js'
 import { DatabaseManager } from './database.js'
 import { log } from './logger.js'
+import { createHash } from 'crypto'
+import { createReadStream, ReadStream } from 'fs'
 
 export class BackupManager {
 	private static instance: BackupManager
+	private HASH_ALGO = 'md5'
 	private directoriesBuffer: string[] = []
 	private filesBuffer: string[] = []
 	private constructor() {
@@ -162,15 +165,49 @@ export class BackupManager {
 		try {
 			const fileData: FileData[] = []
 			for (const file of files) {
-				const buffer = await readFile(file)
+				const [ res, err ] = await this._getFileSizeAndHash(file)
+				if (err) {
+					return [ null, err ]
+				}
 				fileData.push({
 					fullPath: file,
-					byteLength: buffer.byteLength,
-					md5sum: MD5(buffer.toString()),
+					byteLength: res.byteLength,
+					md5sum: res.checksum,
 					deleted: false
 				})
 			}
 			return [ fileData, null ]
+		} catch (err) {
+			return [ null, err ]
+		}
+	}
+
+	private async _getFileSizeAndHash(file: string): Promise<[ { checksum: string; byteLength: number }, Error ]> {
+		try {
+			let hash = createHash(this.HASH_ALGO)
+			const rs: ReadStream = createReadStream(file)
+			let totalBytesRead = 0
+			rs.pipe(hash)
+
+			const endHash: Promise<string> = new Promise((resolve, reject) => {
+				rs.on('end', () => {
+					resolve(hash.digest('hex'))
+				})
+				rs.on('error', (err) => { throw new Error(`Failed to calculate hash. Reason: ${err}`) })
+				rs.on('data', (chunk: Buffer) => {
+					totalBytesRead += chunk.byteLength
+					
+					// Recalculate the hash instance (https://stackoverflow.com/questions/44855529/using-crypto-node-js-library-unable-to-create-sha-256-hashes-multiple-times-in)
+					hash = createHash(this.HASH_ALGO)
+					hash.update(chunk)
+				})
+			})
+
+			const checksum: string = await endHash
+			return [
+				{ checksum: checksum, byteLength: totalBytesRead },
+				null
+			]
 		} catch (err) {
 			return [ null, err ]
 		}
