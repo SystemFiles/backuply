@@ -1,5 +1,5 @@
-import { AppConfigObject, SomeConfigData } from "../common/types"
-import { ConfigStore } from "./configstore"
+import { AppConfigObject, SomeConfigData } from "../common/types.js"
+import { ConfigStore } from "./configstore.js"
 
 export class AppConfig {
   private static instance: AppConfig

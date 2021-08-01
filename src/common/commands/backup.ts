@@ -1,9 +1,9 @@
 import ora from "ora"
 import { resolve } from "path/posix"
 import { cwd } from "process"
-import { BackupManager } from "../../lib/backup"
-import { log } from "../../lib/logger"
-import { BackupRecord } from "../types"
+import { BackupManager } from "../../lib/backup.js"
+import { log } from "../../lib/logger.js"
+import { BackupRecord } from "../types.js"
 
 export async function makeBackup(name: string, src: string, dest: string, ref?: string): Promise<[ BackupRecord, Error ]> {
   try {

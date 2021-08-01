@@ -1,8 +1,8 @@
 import { JSONFile, Low } from 'lowdb'
-import { BackupRecord, RecordTable, RecordType } from '../common/types'
-import { RecordNotFoundException } from '../common/exceptions' 
-import { AppConfig } from './configuration'
-import { DB_KEY } from '../common/constants'
+import { BackupRecord, RecordTable, RecordType } from '../common/types.js'
+import { RecordNotFoundException } from '../common/exceptions.js' 
+import { AppConfig } from './configuration.js'
+import { DB_KEY } from '../common/constants.js'
 
 export class DatabaseManager {
   private static instance: DatabaseManager

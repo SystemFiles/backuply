@@ -1,5 +1,5 @@
-import { LOG_DEBUG, LOG_KEY, PACKAGE_NAME } from "../common/constants"
-import { AppConfig } from "./configuration"
+import { LOG_DEBUG, LOG_KEY, PACKAGE_NAME } from "../common/constants.js"
+import { AppConfig } from "./configuration.js"
 
 function _getCallingFn(): Record<string, string> {
   const e = new Error()

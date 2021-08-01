@@ -1,7 +1,7 @@
 import figlet from "figlet";
 import { userInfo } from "os";
-import { PACKAGE_NAME } from "./constants";
-import { BackupRecord } from "./types";
+import { PACKAGE_NAME } from "./constants.js";
+import { BackupRecord } from "./types.js";
 
 // Pure getAppDataPath
 export function getAppDataPath(): string {

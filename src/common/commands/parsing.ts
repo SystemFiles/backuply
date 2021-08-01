@@ -2,7 +2,11 @@ import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 
 // Handle parse args
-export function parseArgs(): void {
+export function parseArgs(): { [x: string]: unknown;
+		_: (string | number)[]; $0: string; } | 
+		Promise<{ [x: string]: unknown; 
+		_: (string | number)[];
+		$0: string; }> {
 	const cmd = yargs(hideBin(process.argv))
 
 	// Set options
@@ -48,7 +52,7 @@ export function parseArgs(): void {
 	})
 
 	// Set general parse config
-	cmd.usage('Usage: $0 <command> [options...]')
+	return cmd.usage('Usage: $0 <command> [options...]')
 		.demandCommand(1)
 		.argv
 }
