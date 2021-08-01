@@ -1,12 +1,10 @@
 import { LOG_DEBUG, LOG_KEY, PACKAGE_NAME } from "../common/constants"
 import { AppConfig } from "./configuration"
 
-function _getCallingFunction() {
+function _getCallingFn(): Record<string, string> {
   const e = new Error()
 	// matches this function, the caller and the parent
 	const allMatches = e.stack.match(/(\w+)@|at (\w+) \((.*)/g)
-
-	// TODO: continue debugging here...
 
 	// match parent function name and path
 	const allMatchesValid = allMatches[allMatches.length-1] || allMatches[1]
@@ -30,7 +28,7 @@ export function log(message: string): void {
 	let callingFunction: Record<string, unknown>
 	if (logConf['level'] === LOG_DEBUG) {
 		debug = true
-		callingFunction = _getCallingFunction()
+		callingFunction = _getCallingFn()
 	}
 
 	console.log(`[${new Date().toISOString()}] [${logConf['level']}]${debug ? ` [${callingFunction.functionName}:${callingFunction.fileName}]` : ''} >>> ${message}`)
