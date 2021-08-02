@@ -16,6 +16,10 @@ export function parseArgs(): { [x: string]: unknown;
 				type: 'string',
 				description: 'Configure the path to the local database used to store backup metadata'
 			})
+			.option('log.level', {
+				type: 'string',
+				description: 'Configure the logging level '
+			})
 	})
 
 	// Configure custom backups
