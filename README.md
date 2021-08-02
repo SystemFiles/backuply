@@ -1,6 +1,6 @@
 <p align="center">
   <a href="" rel="noopener">
- <img width=200px height=250px src=".github/media/backuply-logo.png" alt="Backuply Logo"></a>
+ <img width=400px height=250px src=".github/media/backuply-logo.png" alt="Backuply Logo"></a>
 </p>
 
 <h3 align="center">Backuply</h3>
