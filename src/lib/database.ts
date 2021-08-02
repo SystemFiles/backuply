@@ -3,6 +3,8 @@ import { BackupRecord, RecordTable, RecordType } from '../common/types.js'
 import { RecordNotFoundException } from '../common/exceptions.js' 
 import { AppConfig } from './configuration.js'
 import { DB_KEY } from '../common/constants.js'
+import { resolve } from 'path/posix'
+import { cwd } from 'process'
 
 export class DatabaseManager {
   private static instance: DatabaseManager
@@ -19,7 +21,7 @@ export class DatabaseManager {
       if (error) {
         throw new Error(`Could not create database instance. Reason: ${error.message}`)
       }
-      DatabaseManager.instance = new DatabaseManager(path ? path : value['path'].toString())
+      DatabaseManager.instance = new DatabaseManager(path ? path : resolve(cwd(), value['path'].toString()))
     }
 
     return DatabaseManager.instance

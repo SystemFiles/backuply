@@ -1,5 +1,12 @@
+import { readFileSync } from 'fs'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
+
+function _getPackageVersion(): string {
+	const pkg = JSON.parse(readFileSync('../../../package.json').toString())
+
+	return pkg.version
+}
 
 // Handle parse args
 export function parseArgs(): { [x: string]: unknown;
@@ -58,5 +65,6 @@ export function parseArgs(): { [x: string]: unknown;
 	// Set general parse config
 	return cmd.usage('Usage: $0 <command> [options...]')
 		.demandCommand(1)
+		.version(`backuply v${_getPackageVersion()}`)
 		.argv
 }
