@@ -5,7 +5,7 @@ on:
     types: [created]
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -15,7 +15,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - name: Install and publish package
         run: |
-          npm install --production
+          npm install
           npm run build          
           npm publish
         env:
