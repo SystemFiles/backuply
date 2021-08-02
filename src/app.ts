@@ -1,3 +1,5 @@
+#! /usr/bin/env node
+
 // Entrypoint to application
 import { makeBackup } from './common/commands/backup.js';
 import { parseArgs } from './common/commands/parsing.js';
