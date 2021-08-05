@@ -134,7 +134,7 @@ export class BackupManager {
 				const absPath = join(root, item)
 				const pStat = await stat(absPath)
 				const isDir = pStat.isDirectory()
-				const isLink = pStat.isSymbolicLink()
+				const isFile = pStat.isFile()
 
 				if (isDir) {
 					// store the directory path in a temporary buffer
@@ -143,7 +143,7 @@ export class BackupManager {
 				} else {
 					// If not directory or symlink store in temporary files buffer
 					// TODO: eventually come up with proper fix for symlinks
-					if (!isLink) this.filesBuffer.push(absPath)
+					if (isFile) this.filesBuffer.push(absPath)
 				}
 			}
 		} catch (err) {
