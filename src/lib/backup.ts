@@ -1,4 +1,4 @@
-import { mkdir, stat, readdir } from 'fs/promises'
+import { mkdir, lstat, readdir } from 'fs/promises'
 import { join } from 'path'
 import { copy, pathExists } from 'fs-extra'
 import { BackupRecord, BackupType, Directory, FileData, RecordTable } from '../common/types.js'
@@ -132,7 +132,7 @@ export class BackupManager {
 			const dirContents = await readdir(root)
 			for (const item of dirContents) {
 				const absPath = join(root, item)
-				const pStat = await stat(absPath)
+				const pStat = await lstat(absPath)
 
 				if (pStat.isDirectory()) {
 					// store the directory path in a temporary buffer and recurse
