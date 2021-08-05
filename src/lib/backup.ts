@@ -141,7 +141,7 @@ export class BackupManager {
 				} else {
 					// If not directory or symlink store in temporary files buffer
 					// TODO: eventually come up with proper fix for symlinks
-					if (pStat.isFile() && !pStat.isSymbolicLink()) this.filesBuffer.push(absPath)
+					this.filesBuffer.push(absPath)
 				}
 			}
 		} catch (err) {
