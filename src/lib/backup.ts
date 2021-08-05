@@ -132,15 +132,18 @@ export class BackupManager {
 			const dirContents = await readdir(root)
 			for (const item of dirContents) {
 				const absPath = join(root, item)
-				const isDir = (await stat(absPath)).isDirectory()
+				const pStat = await stat(absPath)
+				const isDir = pStat.isDirectory()
+				const isLink = pStat.isSymbolicLink()
 
 				if (isDir) {
 					// store the directory path in a temporary buffer
 					this.directoriesBuffer.push(absPath)
 					await this._generateBackupTreeFromRoot(absPath)
 				} else {
-					// If not directory store in temporary files buffer
-					this.filesBuffer.push(absPath)
+					// If not directory or symlink store in temporary files buffer
+					// TODO: eventually come up with proper fix for symlinks
+					if (!isLink) this.filesBuffer.push(absPath)
 				}
 			}
 		} catch (err) {
