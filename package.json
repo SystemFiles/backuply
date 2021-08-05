@@ -1,6 +1,6 @@
 {
   "name": "backuply",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A simple backup client for automating schedule file backups safely",
   "exports": "./dist/app.js",
   "types": "./dist/app.d.ts",
@@ -9,7 +9,7 @@
     "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
   },
   "scripts": {
-    "start": "NODE_ENV=dev tsc && node dist/app.js config --help",
+    "start": "NODE_ENV=dev tsc && node dist/app.js list",
     "build": "NODE_ENV=production tsc",
     "lint": "NODE_ENV=test eslint \"{src,libs,test}/**/*.ts\" --fix",
     "test": "echo \"WARN: no test specified\" && exit 0"
