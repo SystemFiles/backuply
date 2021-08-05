@@ -133,17 +133,15 @@ export class BackupManager {
 			for (const item of dirContents) {
 				const absPath = join(root, item)
 				const pStat = await stat(absPath)
-				const isDir = pStat.isDirectory()
-				const isFile = pStat.isFile()
 
-				if (isDir) {
-					// store the directory path in a temporary buffer
+				if (pStat.isDirectory()) {
+					// store the directory path in a temporary buffer and recurse
 					this.directoriesBuffer.push(absPath)
 					await this._generateBackupTreeFromRoot(absPath)
 				} else {
 					// If not directory or symlink store in temporary files buffer
 					// TODO: eventually come up with proper fix for symlinks
-					if (isFile) this.filesBuffer.push(absPath)
+					if (pStat.isFile() && !pStat.isSymbolicLink()) this.filesBuffer.push(absPath)
 				}
 			}
 		} catch (err) {
