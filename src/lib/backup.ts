@@ -254,12 +254,11 @@ export class BackupManager {
 		return
 	}
 
-	private async _handleCreatedEmptyDirectories(directories: Directory[], destRoot: string): Promise<Error> {
+	private async _handleCreatedEmptyDirectories(directories: Directory[], sourceRoot: string, destRoot: string): Promise<Error> {
 		try {
-			// Instead of copying, we just create the directories
-			directories.map((d) => {
-				if (!d.deleted) this._createDirectory(destRoot, d.path)
-			})
+			for (const d of directories) {
+				if (!d.deleted) this._createDirectory(destRoot, d.path.split(sourceRoot)[1])
+			}
 		} catch (err) {
 			return err
 		}
@@ -308,7 +307,7 @@ export class BackupManager {
 			}
 
 			// Special case: in the event an empty directory is added (create it in diff backup)
-			await this._handleCreatedEmptyDirectories(dChanged, join(destination, generatedBackupName))
+			await this._handleCreatedEmptyDirectories(dChanged, source, join(destination, generatedBackupName))
 
 			await this._copySelectFilesAsync(
 				source,
@@ -378,7 +377,7 @@ export class BackupManager {
 			// 	errorOnExist: false
 			// })
 
-			await this._handleCreatedEmptyDirectories(dirData, join(destination, generatedBackupName))
+			await this._handleCreatedEmptyDirectories(dirData, source, join(destination, generatedBackupName))
 
 			await this._copySelectFilesAsync(
 				source,
