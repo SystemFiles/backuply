@@ -1,7 +1,7 @@
 import figlet from "figlet";
 import { userInfo } from "os";
 import { PACKAGE_NAME } from "./constants.js";
-import { BackupRecord } from "./types.js";
+import { BackupRecord, Directory } from "./types.js";
 
 // Pure getAppDataPath
 export function getAppDataPath(): string {
@@ -38,4 +38,11 @@ export function ppRecord(record: BackupRecord): void {
 		{ attribute: 'location', value: record.destRoot }
 	]
 	console.table(tableData)
+}
+
+// Used to sort directories by depth (ascending order)
+export function compareByDepth(dirA: Directory, dirB: Directory): number {
+	if (dirA.depth < dirB.depth) return -1
+	if (dirA.depth > dirB.depth) return 1
+	return 0
 }

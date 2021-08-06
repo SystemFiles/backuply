@@ -1,5 +1,5 @@
 import { mkdir, lstat, readdir, chown } from 'fs/promises'
-import { join } from 'path/posix'
+import { join, resolve, sep } from 'path/posix'
 import { copy, pathExists } from 'fs-extra'
 import { BackupRecord, BackupType, Directory, FileData, RecordTable } from '../common/types.js'
 import { v4 as uuid } from 'uuid'
@@ -13,6 +13,7 @@ import { DatabaseManager } from './database.js'
 import { log } from './logger.js'
 import { createHash } from 'crypto'
 import { createReadStream, MakeDirectoryOptions, ReadStream } from 'fs'
+import { compareByDepth } from '../common/functions.js'
 
 export class BackupManager {
 	private static instance: BackupManager
@@ -36,7 +37,7 @@ export class BackupManager {
 		try {
 			const fullPath = join(rootPath, directoryName)
 			if (!await pathExists(fullPath)) {
-				await mkdir(fullPath, { recursive: true, ...options })
+				await mkdir(fullPath, { recursive: false, ...options })
 
 				// Append ownership information to directory
 				if (ownership) await chown(fullPath, ownership.uid, ownership.gid)
@@ -74,7 +75,8 @@ export class BackupManager {
 				if (dmatch.length === 0) {
 					changed.push({
 						path: fdir.path,
-						deleted: true
+						depth: fdir.depth,
+						deleted: true,
 					})
 				}
 			}
@@ -223,6 +225,7 @@ export class BackupManager {
 			for (const dir of directories) {
 				const dInfo = await lstat(dir)
 				const dMode = `0${(dInfo.mode & parseInt('755', 8)).toString(8)}`
+				const dDepth = dir.split(sep).length
 
 				// Append the related directory data to the formatted output
 				dirDataFormatted.push({
@@ -230,7 +233,8 @@ export class BackupManager {
 					deleted: false,
 					mode: dMode,
 					uid: dInfo.uid,
-					gid: dInfo.gid
+					gid: dInfo.gid,
+					depth: dDepth
 				})
 			}
 			return [ dirDataFormatted, null ]
@@ -271,18 +275,15 @@ export class BackupManager {
 
 	private async _createDirectoryStructure(directories: Directory[], sourceRoot: string, destRoot: string): Promise<Error> {
 		try {
-			const createPromises = []
-			for (const d of directories) {
+			for (const d of directories.sort(compareByDepth)) {
 				if (!d.deleted) {
 					// Append the operation to the queue
-					createPromises.push(this._createDirectory(destRoot, d.path.split(sourceRoot)[1],
+					await this._createDirectory(destRoot, d.path.split(sourceRoot)[1],
 					{mode: d.mode || '0755'},
-					{ uid: d.uid, gid: d.gid}))
+					{ uid: d.uid, gid: d.gid})
 				}
 			}
-
-			// Execute and wait for all directory structure to be generated
-			await Promise.all(createPromises)
+			return
 		} catch (err) {
 			return err
 		}
