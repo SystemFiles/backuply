@@ -1,5 +1,5 @@
-import { mkdir, lstat, readdir } from 'fs/promises'
-import { join } from 'path'
+import { mkdir, lstat, readdir, chown } from 'fs/promises'
+import { join } from 'path/posix'
 import { copy, pathExists } from 'fs-extra'
 import { BackupRecord, BackupType, Directory, FileData, RecordTable } from '../common/types.js'
 import { v4 as uuid } from 'uuid'
@@ -12,7 +12,7 @@ import {
 import { DatabaseManager } from './database.js'
 import { log } from './logger.js'
 import { createHash } from 'crypto'
-import { createReadStream, ReadStream } from 'fs'
+import { createReadStream, MakeDirectoryOptions, ReadStream } from 'fs'
 
 export class BackupManager {
 	private static instance: BackupManager
@@ -31,17 +31,25 @@ export class BackupManager {
 		return BackupManager.instance
 	}
 
-	private async _createDirectory(rootPath: string, directoryName: string): Promise<[string, Error]> {
-		const fullPath = `${rootPath}/${directoryName}`
+	private async _createDirectory(rootPath: string, directoryName: string,
+		options: MakeDirectoryOptions = { mode: '0766' }, ownership?: {uid: number, gid: number}): Promise<[string, Error]> {
 		try {
+			const fullPath = join(rootPath, directoryName)
 			if (!await pathExists(fullPath)) {
-				return [ await mkdir(fullPath, { recursive: true, mode: '755' }), null ]
+				await mkdir(fullPath, { recursive: false, ...options })
+
+				// Append ownership information to directory
+				if (ownership) await chown(fullPath, ownership.uid, ownership.gid)
+				return [ fullPath, null ]
 			} else {
 				log(`Directory already exists ... skipping create.`)
 				return [ fullPath, null ]
 			}
 		} catch (err) {
-			return [ null, err ]
+			if (!err.message.includes('EPERM')) {
+				log(`ERROR creating directory: ${err}`)
+				return [ null, err ]
+			}
 		}
 	}
 
@@ -213,9 +221,16 @@ export class BackupManager {
 		try {
 			const dirDataFormatted: Directory[] = []
 			for (const dir of directories) {
+				const dInfo = await lstat(dir)
+				const dMode = `0${(dInfo.mode & parseInt('777', 8)).toString(8)}`
+
+				// Append the related directory data to the formatted output
 				dirDataFormatted.push({
 					path: dir,
-					deleted: false
+					deleted: false,
+					mode: dMode,
+					uid: dInfo.uid,
+					gid: dInfo.gid
 				})
 			}
 			return [ dirDataFormatted, null ]
@@ -254,10 +269,12 @@ export class BackupManager {
 		return
 	}
 
-	private async _handleCreatedEmptyDirectories(directories: Directory[], sourceRoot: string, destRoot: string): Promise<Error> {
+	private async _createDirectoryStructure(directories: Directory[], sourceRoot: string, destRoot: string): Promise<Error> {
 		try {
 			for (const d of directories) {
-				if (!d.deleted) this._createDirectory(destRoot, d.path.split(sourceRoot)[1])
+				if (!d.deleted) await this._createDirectory(destRoot, d.path.split(sourceRoot)[1],
+					{mode: d.mode || '0766'},
+					{ uid: d.uid, gid: d.gid})
 			}
 		} catch (err) {
 			return err
@@ -277,6 +294,9 @@ export class BackupManager {
 			const generatedBackupName = useDate
 				? `${name}-${BackupType.DIFF.toLowerCase()}-${timestamp.slice(0, 10)}`
 				: `${name}`
+
+			// Set UMASK to '0' to avoid problems with permission setting
+			process.umask('0')
 
 			// Ensure reference backup actually exists
 			if (!db.findRecordById(fullId)[0] || db.findRecordById(fullId)[0].type !== BackupType.FULL) {
@@ -306,9 +326,7 @@ export class BackupManager {
 				throw new IOException(`Could not create the backup directory. Aborting... (${createErr.message})`)
 			}
 
-			// Special case: in the event an empty directory is added (create it in diff backup)
-			await this._handleCreatedEmptyDirectories(dChanged, source, join(destination, generatedBackupName))
-
+			await this._createDirectoryStructure(dChanged, source, join(destination, generatedBackupName))
 			await this._copySelectFilesAsync(
 				source,
 				fChanged,
@@ -355,6 +373,9 @@ export class BackupManager {
 				? `${name}-${BackupType.FULL.toLowerCase()}-${timestamp.slice(0, 10)}`
 				: `${name}`
 
+			// Set UMASK to '0' to avoid problems with permission setting
+			process.umask('0')
+
 			// Get full list of all directories recursively && Get full list of all files (with absolute paths)
 			await this._generateBackupTreeFromRoot(source)
 			// Calculate checksums of entire backup file tree (recursively)
@@ -362,7 +383,7 @@ export class BackupManager {
 			// Create formatted directory data for each directory from root -> leaf
 			const [ dirData, dirError ] = await this._getDirectoryData(this.directoriesBuffer)
 			if (fileError || dirError) {
-				throw new BackupFilesDiscoveryException(fileError ? fileError.message : dirError.toString())
+				throw new BackupFilesDiscoveryException(fileError ? fileError.message : dirError.message)
 			}
 
 			// Create the FULL backup
@@ -371,9 +392,8 @@ export class BackupManager {
 				throw new IOException(`Could not create the backup directory. Aborting... (${createErr.message})`)
 			}
 			
-
 			// Where empty directories exist and are not captured (create them)
-			await this._handleCreatedEmptyDirectories(dirData, source, join(destination, generatedBackupName))
+			await this._createDirectoryStructure(dirData, source, join(destination, generatedBackupName))
 			await this._copySelectFilesAsync(
 				source,
 				fileData,

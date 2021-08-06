@@ -18,7 +18,10 @@ export type FileData = {
 
 export type Directory = {
 	path: string
-	deleted: boolean
+	deleted: boolean,
+	mode?: string,
+	uid?: number,
+	gid?: number
 }
 
 export type BackupRecord = {
