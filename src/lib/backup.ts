@@ -370,19 +370,14 @@ export class BackupManager {
 			if (createErr) {
 				throw new IOException(`Could not create the backup directory. Aborting... (${createErr.message})`)
 			}
-			// Note: we can use copy standalone for FULL backups since they require little additional computation
-			// await copy(source, `${destination}/${generatedBackupName}`, {
-			// 	overwrite: true,
-			// 	preserveTimestamps: true,
-			// 	errorOnExist: false
-			// })
+			
 
+			// Where empty directories exist and are not captured (create them)
 			await this._handleCreatedEmptyDirectories(dirData, source, join(destination, generatedBackupName))
-
 			await this._copySelectFilesAsync(
 				source,
 				fileData,
-				`${destination}/${generatedBackupName}`
+				join(destination, generatedBackupName)
 			)
 
 			// Create backup record to store into the database
