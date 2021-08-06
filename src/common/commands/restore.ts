@@ -13,7 +13,7 @@ export async function restoreBackup(ref: string, dest: string): Promise<[ string
 
   // Check if refID passed or refName
   let refId = ref
-  if (!ref.match('\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b')) {
+  if (!(/\b[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-\b[0-9a-fA-F]{12}\b/.test(ref))) {
     // Translate ref name to an ID to use
     log(`Reference backup was not presented as UUID ... attempting to translate to UUID from presumed name ...`)
     refId = ref

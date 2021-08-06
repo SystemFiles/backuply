@@ -32,11 +32,11 @@ export class BackupManager {
 	}
 
 	private async _createDirectory(rootPath: string, directoryName: string,
-		options: MakeDirectoryOptions = { mode: '0766' }, ownership?: {uid: number, gid: number}): Promise<[string, Error]> {
+		options: MakeDirectoryOptions = { mode: '0755' }, ownership?: {uid: number, gid: number}): Promise<[string, Error]> {
 		try {
 			const fullPath = join(rootPath, directoryName)
 			if (!await pathExists(fullPath)) {
-				await mkdir(fullPath, { recursive: false, ...options })
+				await mkdir(fullPath, { recursive: true, ...options })
 
 				// Append ownership information to directory
 				if (ownership) await chown(fullPath, ownership.uid, ownership.gid)
@@ -222,7 +222,7 @@ export class BackupManager {
 			const dirDataFormatted: Directory[] = []
 			for (const dir of directories) {
 				const dInfo = await lstat(dir)
-				const dMode = `0${(dInfo.mode & parseInt('777', 8)).toString(8)}`
+				const dMode = `0${(dInfo.mode & parseInt('755', 8)).toString(8)}`
 
 				// Append the related directory data to the formatted output
 				dirDataFormatted.push({
@@ -271,11 +271,18 @@ export class BackupManager {
 
 	private async _createDirectoryStructure(directories: Directory[], sourceRoot: string, destRoot: string): Promise<Error> {
 		try {
+			const createPromises = []
 			for (const d of directories) {
-				if (!d.deleted) await this._createDirectory(destRoot, d.path.split(sourceRoot)[1],
-					{mode: d.mode || '0766'},
-					{ uid: d.uid, gid: d.gid})
+				if (!d.deleted) {
+					// Append the operation to the queue
+					createPromises.push(this._createDirectory(destRoot, d.path.split(sourceRoot)[1],
+					{mode: d.mode || '0755'},
+					{ uid: d.uid, gid: d.gid}))
+				}
 			}
+
+			// Execute and wait for all directory structure to be generated
+			await Promise.all(createPromises)
 		} catch (err) {
 			return err
 		}
