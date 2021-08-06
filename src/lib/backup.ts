@@ -140,7 +140,7 @@ export class BackupManager {
 					await this._generateBackupTreeFromRoot(absPath)
 				} else {
 					// If not directory or symlink store in temporary files buffer
-					if (pStat.isFile() && !pStat.isSocket()) this.filesBuffer.push(absPath)
+					if ((pStat.isFile() || pStat.isSymbolicLink()) && !pStat.isSocket()) this.filesBuffer.push(absPath)
 				}
 			}
 		} catch (err) {
@@ -371,11 +371,17 @@ export class BackupManager {
 				throw new IOException(`Could not create the backup directory. Aborting... (${createErr.message})`)
 			}
 			// Note: we can use copy standalone for FULL backups since they require little additional computation
-			await copy(source, `${destination}/${generatedBackupName}`, {
-				overwrite: true,
-				preserveTimestamps: true,
-				errorOnExist: false
-			})
+			// await copy(source, `${destination}/${generatedBackupName}`, {
+			// 	overwrite: true,
+			// 	preserveTimestamps: true,
+			// 	errorOnExist: false
+			// })
+
+			await this._copySelectFilesAsync(
+				source,
+				fileData,
+				`${destination}/${generatedBackupName}`
+			)
 
 			// Create backup record to store into the database
 			const [ backupSize, sizeError ] = this._getTotalByteLengthOfBackup(fileData)
