@@ -377,6 +377,8 @@ export class BackupManager {
 			// 	errorOnExist: false
 			// })
 
+			await this._handleCreatedEmptyDirectories(dirData, `${destination}/${generatedBackupName}`)
+
 			await this._copySelectFilesAsync(
 				source,
 				fileData,
