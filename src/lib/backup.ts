@@ -306,15 +306,16 @@ export class BackupManager {
 			if (createErr) {
 				throw new IOException(`Could not create the backup directory. Aborting... (${createErr.message})`)
 			}
+
+			// Special case: in the event an empty directory is added (create it in diff backup)
+			await this._handleCreatedEmptyDirectories(dChanged, join(destination, generatedBackupName))
+
 			await this._copySelectFilesAsync(
 				source,
 				fChanged,
 				join(destination, generatedBackupName),
 				dChanged.filter((d) => d.deleted)
 			)
-
-			// Special case: in the event an empty directory is added (create it in diff backup)
-			await this._handleCreatedEmptyDirectories(dChanged, join(destination, generatedBackupName))
 
 			// Create && update backup record for this diff backup
 			const [ backupSize, sizeError ] = await this._getTotalByteLengthOfBackup(fChanged)
@@ -377,7 +378,7 @@ export class BackupManager {
 			// 	errorOnExist: false
 			// })
 
-			await this._handleCreatedEmptyDirectories(dirData, `${destination}/${generatedBackupName}`)
+			await this._handleCreatedEmptyDirectories(dirData, join(destination, generatedBackupName))
 
 			await this._copySelectFilesAsync(
 				source,
