@@ -140,7 +140,7 @@ export class BackupManager {
 					await this._generateBackupTreeFromRoot(absPath)
 				} else {
 					// If not directory or symlink store in temporary files buffer
-					if ((pStat.isFile() || pStat.isSymbolicLink()) && !pStat.isSocket()) this.filesBuffer.push(absPath)
+					if (pStat.isFile() && !pStat.isSocket()) this.filesBuffer.push(absPath)
 				}
 			}
 		} catch (err) {
