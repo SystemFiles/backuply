@@ -32,8 +32,12 @@ export class BackupManager {
 		return BackupManager.instance
 	}
 
-	private async _createDirectory(rootPath: string, directoryName: string,
-		options: MakeDirectoryOptions = { mode: '0755' }, ownership?: {uid: number, gid: number}): Promise<[string, Error]> {
+	private async _createDirectory(
+		rootPath: string,
+		directoryName: string,
+		options: MakeDirectoryOptions = { mode: '0755' },
+		ownership?: { uid: number; gid: number }
+	): Promise<[string, Error]> {
 		try {
 			const fullPath = join(rootPath, directoryName)
 			if (!await pathExists(fullPath)) {
@@ -76,7 +80,7 @@ export class BackupManager {
 					changed.push({
 						path: fdir.path,
 						depth: fdir.depth,
-						deleted: true,
+						deleted: true
 					})
 				}
 			}
@@ -191,7 +195,7 @@ export class BackupManager {
 		}
 	}
 
-	private async _getFileSizeAndHash(file: string): Promise<[ { checksum: string; byteLength: number }, Error ]> {
+	private async _getFileSizeAndHash(file: string): Promise<[{ checksum: string; byteLength: number }, Error]> {
 		try {
 			const hash = createHash(this.HASH_ALGO)
 			const rs: ReadStream = createReadStream(file)
@@ -202,7 +206,9 @@ export class BackupManager {
 				rs.on('end', () => {
 					resolve(hash.digest('hex'))
 				})
-				rs.on('error', (err) => { reject(new Error(`Failed to calculate hash. Reason: ${err}`)) })
+				rs.on('error', (err) => {
+					reject(new Error(`Failed to calculate hash. Reason: ${err}`))
+				})
 				rs.on('data', (chunk: Buffer) => {
 					totalBytesRead += chunk.byteLength
 					hash.update(chunk)
@@ -210,10 +216,7 @@ export class BackupManager {
 			})
 
 			const checksum: string = await endHash
-			return [
-				{ checksum: checksum, byteLength: totalBytesRead },
-				null
-			]
+			return [ { checksum: checksum, byteLength: totalBytesRead }, null ]
 		} catch (err) {
 			return [ null, err ]
 		}
@@ -273,14 +276,33 @@ export class BackupManager {
 		return
 	}
 
-	private async _createDirectoryStructure(directories: Directory[], sourceRoot: string, destRoot: string): Promise<Error> {
+	private async _createDirectoryStructure(
+		directories: Directory[],
+		sourceRoot: string,
+		destRoot: string
+	): Promise<Error> {
 		try {
+			let processQueue = []
+			let depthCatch = 0
 			for (const d of directories.sort(compareByDepth)) {
 				if (!d.deleted) {
+					if (depthCatch !== d.depth) {
+						const depthQueue = processQueue
+						await Promise.all(depthQueue)
+
+						depthCatch = d.depth
+						processQueue = []
+					}
+
 					// Append the operation to the queue
-					await this._createDirectory(destRoot, d.path.split(sourceRoot)[1],
-					{mode: d.mode || '0755'},
-					{ uid: d.uid, gid: d.gid})
+					processQueue.push(
+						this._createDirectory(
+							destRoot,
+							d.path.split(sourceRoot)[1],
+							{ mode: d.mode || '0755' },
+							{ uid: d.uid, gid: d.gid }
+						)
+					)
 				}
 			}
 			return
@@ -399,14 +421,10 @@ export class BackupManager {
 			if (createErr) {
 				throw new IOException(`Could not create the backup directory. Aborting... (${createErr.message})`)
 			}
-			
+
 			// Where empty directories exist and are not captured (create them)
 			await this._createDirectoryStructure(dirData, source, join(destination, generatedBackupName))
-			await this._copySelectFilesAsync(
-				source,
-				fileData,
-				join(destination, generatedBackupName)
-			)
+			await this._copySelectFilesAsync(source, fileData, join(destination, generatedBackupName))
 
 			// Create backup record to store into the database
 			const [ backupSize, sizeError ] = this._getTotalByteLengthOfBackup(fileData)
