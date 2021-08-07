@@ -1,5 +1,10 @@
 import figlet from 'figlet'
+import { MakeDirectoryOptions } from 'fs'
+import { pathExists } from 'fs-extra'
+import { chown, readdir, mkdir } from 'fs/promises'
 import { userInfo } from 'os'
+import { join } from 'path/posix'
+import { log } from '../lib/logger.js'
 import { PACKAGE_NAME } from './constants.js'
 import { BackupRecord, Directory } from './types.js'
 
@@ -44,4 +49,38 @@ export function compareByDepth(dirA: Directory, dirB: Directory): number {
 	if (dirA.depth < dirB.depth) return -1
 	if (dirA.depth > dirB.depth) return 1
 	return 0
+}
+
+// Create a directory with optional permissions modes
+export async function createDirectory(
+	rootPath: string,
+	directoryName: string,
+	options: MakeDirectoryOptions = { mode: '0755' },
+	ownership?: { uid: number; gid: number }
+): Promise<[string, Error]> {
+	try {
+		const fullPath = join(rootPath, directoryName)
+		if (!await pathExists(fullPath)) {
+			await mkdir(fullPath, { recursive: false, ...options })
+
+			// Append ownership information to directory
+			if (ownership) await chown(fullPath, ownership.uid, ownership.gid)
+			return [ fullPath, null ]
+		} else {
+			log(`Directory already exists ... skipping create.`)
+			return [ fullPath, null ]
+		}
+	} catch (err) {
+		if (!err.message.includes('EPERM')) {
+			log(`ERROR creating directory: ${err}`)
+			return [ null, err ]
+		}
+	}
+}
+
+// Check whether a given directory is empty or not
+export async function isDirEmpty(path: string): Promise<boolean> {
+	return readdir(path).then((files) => {
+		return files.length === 0
+	})
 }
