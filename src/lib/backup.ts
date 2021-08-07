@@ -328,7 +328,7 @@ export class BackupManager {
 			// Set UMASK to '0' to avoid problems with permission setting
 			process.umask('0')
 
-			// Ensure reference backup actually exists
+			// Ensure reference backup actually exists and is a full backup
 			if (!db.findRecordById(fullId)[0] || db.findRecordById(fullId)[0].type !== BackupType.FULL) {
 				throw new BackupException(`Could not find a reference full backup with ID, ${fullId}. Cannot continue`)
 			}
