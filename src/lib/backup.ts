@@ -356,6 +356,7 @@ export class BackupManager {
 				throw new IOException(`Could not create the backup directory. Aborting... (${createErr.message})`)
 			}
 
+			// Create backup structure based on directories with changes and copy files
 			await this._createDirectoryStructure(dChanged, source, join(destination, generatedBackupName))
 			await this._copySelectFilesAsync(
 				source,
@@ -422,7 +423,7 @@ export class BackupManager {
 				throw new IOException(`Could not create the backup directory. Aborting... (${createErr.message})`)
 			}
 
-			// Where empty directories exist and are not captured (create them)
+			// Create full structure (and persist permisssions/ownership) and copy files
 			await this._createDirectoryStructure(dirData, source, join(destination, generatedBackupName))
 			await this._copySelectFilesAsync(source, fileData, join(destination, generatedBackupName))
 
