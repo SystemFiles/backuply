@@ -19,6 +19,10 @@ export type FileData = {
 export type Directory = {
 	path: string
 	deleted: boolean
+	depth: number
+	mode?: string
+	uid?: number
+	gid?: number
 }
 
 export type BackupRecord = {
@@ -40,7 +44,7 @@ export type RecordType = {
 }
 
 // App Config
-export type SomeConfigData = string|Record<string, unknown>
+export type SomeConfigData = string | Record<string, unknown>
 
 export type AppConfigObject = {
 	db: SomeConfigData
@@ -48,6 +52,6 @@ export type AppConfigObject = {
 }
 
 export type ConfigStoreOptions = {
-	configName: string,
+	configName: string
 	defaults?: AppConfigObject
 }
