@@ -2,6 +2,7 @@ import ora from 'ora'
 import { resolve } from 'path/posix'
 import { cwd } from 'process'
 import { BackupManager } from '../../lib/backup.js'
+import { DatabaseManager } from '../../lib/database.js'
 import { log } from '../../lib/logger.js'
 import { BackupRecord } from '../types.js'
 
@@ -26,6 +27,36 @@ export async function makeBackup(
 	} catch (err) {
 		return [ null, err ]
 	}
+}
+export async function listBackups(name?: string): Promise<Error> {
+	const db: DatabaseManager = DatabaseManager.getInstance()
+	const [ records, err ] = await db.findAllRecords()
+	if (err) return err
+	let fRecords = records
+
+	if (name && name.length > 0) {
+		// Filter by name
+		fRecords = fRecords.filter((r) => r.name.match(name))
+	}
+
+	if (fRecords.length === 0) {
+		log(`No records were found ...`)
+		return
+	}
+
+	const tableData = fRecords.map((r) => {
+		return {
+			id: r.id,
+			name: r.name,
+			created: r.created,
+			type: r.type,
+			size: `${Math.round(r.bytelength / 1024 / 1024)}MB`
+		}
+	})
+
+	// Print the result
+	log(`Found a total of ${fRecords.length} record(s) matching list criteria...`)
+	console.table(tableData)
 }
 
 export async function differentialBackup(

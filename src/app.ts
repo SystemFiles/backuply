@@ -1,7 +1,7 @@
 #! /usr/bin/env node
 
 // Entrypoint to application
-import { makeBackup } from './common/commands/backup.js'
+import { listBackups, makeBackup } from './common/commands/backup.js'
 import { parseArgs } from './common/commands/parsing.js'
 import { restoreBackup } from './common/commands/restore.js'
 import { ppRecord, sayHello } from './common/functions.js'
@@ -14,8 +14,8 @@ const cmdArgs = parseArgs()
 
 const run = async () => {
 	sayHello()
-	// Handle: Perform all app configurations first
 
+	// Handle: Perform all app configurations first
 	if (cmdArgs['_'].toString() === 'config') {
 		const conf = AppConfig.getInstance()
 		const options = Object.keys(cmdArgs).slice(1)
@@ -60,6 +60,13 @@ const run = async () => {
 			}
 
 			log(`Backup with ID, ${res}, successfully restored to ${cmdArgs['dest']}`)
+			break
+		}
+		case 'list': {
+			const err = await listBackups(cmdArgs['name'])
+			if (err) {
+				log(`Could not list backups. Reason: ${err.message}`)
+			}
 			break
 		}
 		default: {

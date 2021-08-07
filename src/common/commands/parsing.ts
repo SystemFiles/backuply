@@ -28,6 +28,17 @@ export function parseArgs():
 			})
 	})
 
+	cmd.command(
+		'list',
+		'displays a list of all backups that are currently known by the system. Use --name to filter backups by name',
+		(yargs) => {
+			return yargs.option('name', {
+				describe: 'An optional variable used for some info commands to refine info operations',
+				type: 'string'
+			})
+		}
+	)
+
 	// Configure custom backups
 	cmd.command('backup', 'performs a custom backup of a select directory(s)', (yargs) => {
 		return yargs

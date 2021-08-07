@@ -40,6 +40,14 @@ export class DatabaseManager {
 		}
 	}
 
+	async findAllRecords(): Promise<[BackupRecord[], Error]> {
+		try {
+			return [ this.dbClient.data.backups, null ]
+		} catch (err) {
+			return [ null, err ]
+		}
+	}
+
 	findRecordById(id: string, table: RecordTable = RecordTable.BACKUPS): [BackupRecord, Error] {
 		try {
 			let backup: BackupRecord
