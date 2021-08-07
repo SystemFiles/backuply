@@ -1,7 +1,7 @@
-import figlet from "figlet";
-import { userInfo } from "os";
-import { PACKAGE_NAME } from "./constants.js";
-import { BackupRecord, Directory } from "./types.js";
+import figlet from 'figlet'
+import { userInfo } from 'os'
+import { PACKAGE_NAME } from './constants.js'
+import { BackupRecord, Directory } from './types.js'
 
 // Pure getAppDataPath
 export function getAppDataPath(): string {
@@ -21,8 +21,7 @@ export function getAppDataPath(): string {
 // App Say
 export function sayHello(): void {
 	console.clear()
-	console.log(`${figlet.textSync(PACKAGE_NAME,
-		{ horizontalLayout: 'full' })}\n\n`)
+	console.log(`${figlet.textSync(PACKAGE_NAME, { horizontalLayout: 'full' })}\n\n`)
 }
 
 // Record display (pretty print)

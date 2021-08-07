@@ -1,5 +1,5 @@
 import { mkdir, lstat, readdir, chown } from 'fs/promises'
-import { join, resolve, sep } from 'path/posix'
+import { join, sep } from 'path/posix'
 import { copy, pathExists } from 'fs-extra'
 import { BackupRecord, BackupType, Directory, FileData, RecordTable } from '../common/types.js'
 import { v4 as uuid } from 'uuid'

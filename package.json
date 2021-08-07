@@ -9,7 +9,7 @@
     "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
   },
   "scripts": {
-    "start": "NODE_ENV=dev tsc && node dist/app.js restore --ref 1bf4d842-f7d8-400a-8b0c-1cbdb28ba50e --dest ./dev/restore",
+    "start": "NODE_ENV=dev tsc && node dist/app.js backup --name test-ref --source ~/Documents/Personal --dest ./dev",
     "build": "NODE_ENV=production tsc",
     "lint": "NODE_ENV=test eslint \"{src,libs,test}/**/*.ts\" --fix",
     "test": "echo \"WARN: no test specified\" && exit 0"

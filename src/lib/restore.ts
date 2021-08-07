@@ -52,7 +52,7 @@ export class RestoreManager {
 				for (const df of diffBackup.fileList) {
 					df.fullPath = await this._updatePathRoot(df.fullPath, diffBackup.sourceRoot, diffBackup.destRoot)
 					const dbRelPath = df.fullPath.split(diffBackup.name).reverse()[0]
-					
+
 					if (fbRelPath === dbRelPath) {
 						// File Deleted
 						if (df.deleted) fileSet.delete(ff)
