@@ -28,6 +28,36 @@ export async function makeBackup(
 		return [ null, err ]
 	}
 }
+export async function listBackups(name?: string): Promise<Error> {
+	const db: DatabaseManager = DatabaseManager.getInstance()
+	const [ records, err ] = await db.findAllRecords()
+	if (err) return err
+	let fRecords = records
+
+	if (name && name.length > 0) {
+		// Filter by name
+		fRecords = fRecords.filter((r) => r.name.match(name))
+	}
+
+	if (fRecords.length === 0) {
+		log(`No records were found ...`)
+		return
+	}
+
+	const tableData = fRecords.map((r) => {
+		return {
+			id: r.id,
+			name: r.name,
+			created: r.created,
+			type: r.type,
+			size: `${Math.round(r.bytelength / 1024 / 1024)}MB`
+		}
+	})
+
+	// Print the result
+	log(`Found a total of ${fRecords.length} record(s) matching list criteria...`)
+	console.table(tableData)
+}
 
 export async function differentialBackup(
 	name: string,
@@ -40,7 +70,7 @@ export async function differentialBackup(
 
 		// Check if refID passed or refName
 		let refId = ref
-		if (!ref.match('\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b')) {
+		if (!/\b[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-\b[0-9a-fA-F]{12}\b/.test(ref)) {
 			// Translate ref name to an ID to use
 			log(`Reference backup was not presented as UUID ... attempting to translate to UUID from presumed name ...`)
 			refId = ref
@@ -71,35 +101,4 @@ export async function fullBackup(name: string, src: string, dest: string): Promi
 	const res = await mgr.fullBackup(resolve(cwd(), src), name, resolve(cwd(), dest))
 	spinner.stop()
 	return res
-}
-
-export async function listBackups(name?: string): Promise<Error> {
-	const db: DatabaseManager = DatabaseManager.getInstance()
-	const [ records, err ] = await db.findAllRecords()
-	if (err) return err
-	let fRecords = records
-
-	if (name && name.length > 0) {
-		// Filter by name
-		fRecords = fRecords.filter((r) => r.name.match(name))
-	}
-
-	if (fRecords.length === 0) {
-		log(`No records were found ...`)
-		return
-	}
-
-	const tableData = fRecords.map((r) => {
-		return {
-			id: r.id,
-			name: r.name,
-			created: r.created,
-			type: r.type,
-			size: `${Math.round(r.bytelength / 1024 / 1024)}MB`
-		}
-	})
-
-	// Print the result
-	log(`Found a total of ${fRecords.length} record(s) matching list criteria...`)
-	console.table(tableData)
 }
