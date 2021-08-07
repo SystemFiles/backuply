@@ -1,13 +1,13 @@
 #! /usr/bin/env node
 
 // Entrypoint to application
-import { makeBackup } from './common/commands/backup.js';
-import { parseArgs } from './common/commands/parsing.js';
-import { restoreBackup } from './common/commands/restore.js';
-import { ppRecord, sayHello } from './common/functions.js';
-import { AppConfig } from './lib/configuration.js';
-import { DatabaseManager } from './lib/database.js';
-import { log } from "./lib/logger.js";
+import { makeBackup } from './common/commands/backup.js'
+import { parseArgs } from './common/commands/parsing.js'
+import { restoreBackup } from './common/commands/restore.js'
+import { ppRecord, sayHello } from './common/functions.js'
+import { AppConfig } from './lib/configuration.js'
+import { DatabaseManager } from './lib/database.js'
+import { log } from './lib/logger.js'
 
 // Define commandline options
 const cmdArgs = parseArgs()
@@ -49,7 +49,7 @@ const run = async () => {
 
 			log(`Backup successfully created. See details below:\n`)
 			ppRecord(res) // Print the created record in a pretty way :p
-			break;
+			break
 		}
 		case 'restore': {
 			const [ res, err ] = await restoreBackup(cmdArgs['ref'], cmdArgs['dest'])
@@ -60,7 +60,7 @@ const run = async () => {
 			}
 
 			log(`Backup with ID, ${res}, successfully restored to ${cmdArgs['dest']}`)
-			break;
+			break
 		}
 		default: {
 			log(`WARN: Invalid command specified`)
