@@ -73,6 +73,11 @@ export function parseArgs():
 				describe: 'path to destination restore directory',
 				type: 'string'
 			})
+			.option('full', {
+				describe:
+					'If using a name reference, tells backuply whether to restore only the latest full backup (if exists with ref)',
+				type: 'boolean'
+			})
 	})
 
 	// Set general parse config

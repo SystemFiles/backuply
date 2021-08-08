@@ -52,7 +52,7 @@ const run = async () => {
 			break
 		}
 		case 'restore': {
-			const [ res, err ] = await restoreBackup(cmdArgs['ref'], cmdArgs['dest'])
+			const [ res, err ] = await restoreBackup(cmdArgs['ref'], cmdArgs['dest'], cmdArgs['full'])
 
 			if (err) {
 				log(`Something went wrong when attempting to restore a backup. Reason: ${err.message}`)
