@@ -4,9 +4,10 @@ import { pathExists } from 'fs-extra'
 import { chown, readdir, mkdir } from 'fs/promises'
 import { userInfo } from 'os'
 import { join } from 'path/posix'
+import { DatabaseManager } from '../lib/database.js'
 import { log } from '../lib/logger.js'
 import { PACKAGE_NAME } from './constants.js'
-import { BackupRecord, Directory } from './types.js'
+import { BackupRecord, BackupType, Directory } from './types.js'
 
 // Pure getAppDataPath
 export function getAppDataPath(): string {
@@ -49,6 +50,30 @@ export function compareByDepth(dirA: Directory, dirB: Directory): number {
 	if (dirA.depth < dirB.depth) return -1
 	if (dirA.depth > dirB.depth) return 1
 	return 0
+}
+
+// Used to sort backup records by name (alphabetical, ascending)
+export function compareRecordsByCreationTime(recordA: BackupRecord, recordB: BackupRecord): number {
+	const dateA = new Date(recordA.created)
+	const dateB = new Date(recordB.created)
+
+	if (dateA < dateB) return -1
+	if (dateA > dateB) return 1
+	return 0
+}
+
+// Translate name to uuid
+export function getLatestBackupByName(name: string, type?: BackupType): [BackupRecord, Error] {
+	try {
+		const db = DatabaseManager.getInstance()
+		const [ res, err ] = db.findRecordsByName(name, type)
+		if (err || res.length === 0) {
+			throw new Error(`Failed to get any records for the given name, ${name}`)
+		}
+		return [ res.sort(compareRecordsByCreationTime).shift(), null ]
+	} catch (err) {
+		return [ null, err ]
+	}
 }
 
 // Create a directory with optional permissions modes

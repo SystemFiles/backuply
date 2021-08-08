@@ -4,7 +4,9 @@ import { cwd } from 'process'
 import { BackupManager } from '../../lib/backup.js'
 import { DatabaseManager } from '../../lib/database.js'
 import { log } from '../../lib/logger.js'
-import { BackupRecord } from '../types.js'
+import { BackupException } from '../exceptions.js'
+import { compareRecordsByCreationTime, getLatestBackupByName } from '../functions.js'
+import { BackupRecord, BackupType } from '../types.js'
 
 export async function makeBackup(
 	name: string,
@@ -30,7 +32,7 @@ export async function makeBackup(
 }
 export async function listBackups(name?: string): Promise<Error> {
 	const db: DatabaseManager = DatabaseManager.getInstance()
-	const [ records, err ] = await db.findAllRecords()
+	const [ records, err ] = db.findAllRecords()
 	if (err) return err
 	let fRecords = records
 
@@ -71,9 +73,15 @@ export async function differentialBackup(
 		// Check if refID passed or refName
 		let refId = ref
 		if (!/\b[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-\b[0-9a-fA-F]{12}\b/.test(ref)) {
-			// Translate ref name to an ID to use
 			log(`Reference backup was not presented as UUID ... attempting to translate to UUID from presumed name ...`)
-			refId = ref
+
+			// Translate ref name to an ID to use
+			const [ latestFull, err ] = getLatestBackupByName(ref, BackupType.FULL)
+			if (err)
+				throw new BackupException(`Failed to translate backup for backup reference, ${ref} ... Reason: ${err.message}`)
+
+			refId = latestFull.id
+			log(`Translation complete. NAME (${ref}) > UUID (${refId})`)
 		}
 
 		// Perform the backup and return

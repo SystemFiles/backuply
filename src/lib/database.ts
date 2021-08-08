@@ -1,6 +1,6 @@
 import { JSONFile, Low } from 'lowdb'
-import { BackupRecord, RecordTable, RecordType } from '../common/types.js'
-import { RecordNotFoundException } from '../common/exceptions.js'
+import { BackupRecord, BackupType, RecordTable, RecordType } from '../common/types.js'
+import { BackupException, RecordNotFoundException } from '../common/exceptions.js'
 import { AppConfig } from './configuration.js'
 import { DB_KEY } from '../common/constants.js'
 import { resolve } from 'path/posix'
@@ -40,9 +40,20 @@ export class DatabaseManager {
 		}
 	}
 
-	async findAllRecords(): Promise<[BackupRecord[], Error]> {
+	findAllRecords(): [BackupRecord[], Error] {
 		try {
 			return [ this.dbClient.data.backups, null ]
+		} catch (err) {
+			return [ null, err ]
+		}
+	}
+
+	findRecordsByName(name: string, backupType?: BackupType): [ BackupRecord[], Error ] {
+		try {
+			const data = this.dbClient.data.backups
+			const filtered = data.filter((r) => r.name.startsWith(name) && backupType ? (r.type === backupType) : true)
+			
+			return [ filtered, null ]
 		} catch (err) {
 			return [ null, err ]
 		}
