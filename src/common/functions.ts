@@ -57,8 +57,8 @@ export function compareRecordsByCreationTime(recordA: BackupRecord, recordB: Bac
 	const dateA = new Date(recordA.created)
 	const dateB = new Date(recordB.created)
 
-	if (dateA < dateB) return -1
-	if (dateA > dateB) return 1
+	if (dateA < dateB) return 1
+	if (dateA > dateB) return -1
 	return 0
 }
 
