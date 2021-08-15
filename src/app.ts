@@ -9,11 +9,11 @@ import { AppConfig } from './lib/configuration.js'
 import { DatabaseManager } from './lib/database.js'
 import { log } from './lib/logger.js'
 
-// Define commandline options
-const cmdArgs = parseArgs()
-
 const run = async () => {
 	sayHello()
+
+	// Parse commandline options
+	const cmdArgs = parseArgs()
 
 	// Handle: Perform all app configurations first
 	if (cmdArgs['_'].toString() === 'config') {
@@ -52,7 +52,7 @@ const run = async () => {
 			break
 		}
 		case 'restore': {
-			const [ res, err ] = await restoreBackup(cmdArgs['ref'], cmdArgs['dest'])
+			const [ res, err ] = await restoreBackup(cmdArgs['ref'], cmdArgs['dest'], cmdArgs['full'])
 
 			if (err) {
 				log(`Something went wrong when attempting to restore a backup. Reason: ${err.message}`)
