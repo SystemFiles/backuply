@@ -9,11 +9,11 @@ import { AppConfig } from './lib/configuration.js'
 import { DatabaseManager } from './lib/database.js'
 import { log } from './lib/logger.js'
 
-// Define commandline options
-const cmdArgs = parseArgs()
-
 const run = async () => {
 	sayHello()
+
+	// Parse commandline options
+	const cmdArgs = parseArgs()
 
 	// Handle: Perform all app configurations first
 	if (cmdArgs['_'].toString() === 'config') {
