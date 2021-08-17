@@ -4,11 +4,6 @@ export enum BackupType {
 	DIFF = 'diff'
 }
 
-export enum RecordTable {
-	BACKUPS,
-	ARCHIVE
-}
-
 export type FileData = {
 	fullPath: string
 	byteLength: number
@@ -40,18 +35,16 @@ export type BackupRecord = {
 
 export type RecordType = {
 	backups: BackupRecord[]
-	archive: BackupRecord[]
 }
 
 // App Config
 export type SomeConfigData = string | Record<string, unknown>
 
 export type AppConfigObject = {
-	db: SomeConfigData
-	log: SomeConfigData
-}
-
-export type ConfigStoreOptions = {
-	configName: string
-	defaults?: AppConfigObject
+	db: {
+		path: string
+	}
+	log: {
+		level: string
+	}
 }

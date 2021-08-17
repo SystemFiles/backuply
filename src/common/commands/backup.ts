@@ -5,7 +5,7 @@ import { BackupManager } from '../../lib/backup.js'
 import { DatabaseManager } from '../../lib/database.js'
 import { log } from '../../lib/logger.js'
 import { BackupException } from '../exceptions.js'
-import { compareRecordsByCreationTime, getLatestBackupByName } from '../functions.js'
+import { getLatestBackupByName } from '../functions.js'
 import { BackupRecord, BackupType } from '../types.js'
 
 export async function makeBackup(
