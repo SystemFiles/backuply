@@ -1,6 +1,7 @@
 #! /usr/bin/env node
 
 // Entrypoint to application
+import ora from 'ora'
 import { listBackups, makeBackup } from './common/commands/backup.js'
 import { parseArgs } from './common/commands/parsing.js'
 import { restoreBackup } from './common/commands/restore.js'
@@ -12,16 +13,21 @@ import { log } from './lib/logger.js'
 const run = async () => {
 	sayHello()
 
+	// Init: AppConfig instance
+	const configStore = AppConfig.getInstance()
+	const configInitProgress = ora('Initializing App Config ...').start()
+	await configStore.init()
+	configInitProgress.stop()
+
 	// Parse commandline options
 	const cmdArgs = parseArgs()
 
 	// Handle: Perform all app configurations first
 	if (cmdArgs['_'].toString() === 'config') {
-		const conf = AppConfig.getInstance()
 		const options = Object.keys(cmdArgs).slice(1)
 		for (const opt of options) {
 			if (opt !== '$0') {
-				const [ newVal, setErr ] = conf.setValue(opt, cmdArgs[opt])
+				const [ newVal, setErr ] = configStore.setValue(opt, cmdArgs[opt])
 				if (setErr) {
 					log(`FATAL: Failed to set ${opt} in App Config ...`)
 					process.exit(1)
@@ -33,9 +39,11 @@ const run = async () => {
 		process.exit(0)
 	}
 
-	// Init: database
+	// Init: Backup Database
 	const db = DatabaseManager.getInstance()
+	const dbInitProgress = ora('Initializing Backuply Datastore ...').start()
 	await db.init()
+	dbInitProgress.stop()
 
 	// Handle: Perform backup and restore operations
 	switch (cmdArgs['_'].toString()) {

@@ -1,7 +1,7 @@
 import { lstat, readdir } from 'fs/promises'
 import { join, sep } from 'path/posix'
 import { copy } from 'fs-extra'
-import { BackupRecord, BackupType, Directory, FileData, RecordTable } from '../common/types.js'
+import { BackupRecord, BackupType, Directory, FileData } from '../common/types.js'
 import { v4 as uuid } from 'uuid'
 import {
 	BackupException,
@@ -357,7 +357,7 @@ export class BackupManager {
 			}
 
 			// Update the database (only after everything else works properly)
-			await db.insert(RecordTable.BACKUPS, backupRecord)
+			await db.insert(backupRecord)
 			return [ backupRecord, null ]
 		} catch (err) {
 			return [ null, err ]
@@ -419,7 +419,7 @@ export class BackupManager {
 			}
 
 			// Write changes to database entry (including directories & files)
-			await db.insert(RecordTable.BACKUPS, backupRecord)
+			await db.insert(backupRecord)
 			return [ backupRecord, null ]
 		} catch (err) {
 			return [ null, err ]
