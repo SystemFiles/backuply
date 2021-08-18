@@ -1,8 +1,10 @@
+import { pathExists } from 'fs-extra'
 import { JSONFile, Low } from 'lowdb'
 import { join } from 'path/posix'
-import { getAppDataPath } from '../common/functions.js'
+import { createDirectory, getAppDataPath } from '../common/functions.js'
 import { AppConfigObject, SomeConfigData } from '../common/types.js'
 import { defaults } from '../config/backuply.js'
+import { log } from './logger.js'
 
 export class AppConfig {
 	private static instance: AppConfig
@@ -24,6 +26,13 @@ export class AppConfig {
 
 	async init(): Promise<void> {
 		try {
+			// Ensure path exists for config data file
+			if (!(await pathExists(getAppDataPath()))) {
+				// create the path recursively
+				await createDirectory(getAppDataPath(), '', { recursive: true, mode: '0766' })
+				log(`Root path does not exist for AppData so we created one ...`)
+			}
+
 			// Read data as exists (set appconfig content)
 			await this.store.read()
 

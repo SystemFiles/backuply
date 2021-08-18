@@ -25,22 +25,28 @@ function _getCallingFn(): Record<string, string> {
 }
 
 export function log(message: string): void {
-	const [ logConf, err ] = AppConfig.getInstance().getValue(LOG_KEY)
+	try {
+		const [ logConf, err ] = AppConfig.getInstance().getValue(LOG_KEY)
 
-	if (err) {
-		console.warn('Failed to determine log level automatically ... defaulting to INFO')
+		if (err) {
+			console.warn('Failed to determine log level automatically ... defaulting to INFO')
+			return
+		}
+
+		let debug = false
+		let callingFunction: Record<string, unknown>
+		if (logConf['level'] === LOG_DEBUG) {
+			debug = true
+			callingFunction = _getCallingFn()
+		}
+
+		console.log(
+			`[${new Date().toISOString()}] [${logConf['level']}]${debug
+				? ` [${callingFunction.functionName}:${callingFunction.fileName}]`
+				: ''} >>> ${message}`
+		)
+	} catch (err) {
+		// If anything else goes wrong we can't have our default logging function breaking ... log with basic info only
+		console.log(`[${new Date().toISOString()}] [INFO] >>> ${message}`)
 	}
-
-	let debug = false
-	let callingFunction: Record<string, unknown>
-	if (logConf['level'] === LOG_DEBUG) {
-		debug = true
-		callingFunction = _getCallingFn()
-	}
-
-	console.log(
-		`[${new Date().toISOString()}] [${logConf['level']}]${debug
-			? ` [${callingFunction.functionName}:${callingFunction.fileName}]`
-			: ''} >>> ${message}`
-	)
 }
