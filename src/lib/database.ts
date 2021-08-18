@@ -51,7 +51,11 @@ export class DatabaseManager {
 	findRecordsByName(name: string, backupType?: BackupType): [BackupRecord[], Error] {
 		try {
 			const data = this.dbClient.data.backups
-			const filtered = data.filter((r) => r.name.match(name) && (backupType ? r.type === backupType : true))
+			let filtered = data.filter((r) => r.name.match(name))
+
+			if (backupType) {
+				filtered = filtered.filter((r) => r.type === backupType.toString())
+			}
 
 			return [ filtered, null ]
 		} catch (err) {
