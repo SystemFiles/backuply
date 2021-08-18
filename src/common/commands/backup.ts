@@ -77,8 +77,10 @@ export async function differentialBackup(
 
 			// Translate ref name to an ID to use
 			const [ latestFull, err ] = getLatestBackupByName(ref, BackupType.FULL)
-			if (err)
-				throw new BackupException(`Failed to translate backup for backup reference, ${ref} ... Reason: ${err.message}`)
+			if (err) {
+				log(`Failed to translate backup for backup reference, ${ref} ... Reason: ${err.message}`)
+				process.exit(2)
+			}
 
 			refId = latestFull.id
 			log(`Translation complete. NAME (${ref}) > UUID (${refId})`)
