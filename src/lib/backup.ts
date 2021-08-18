@@ -339,7 +339,7 @@ export class BackupManager {
 			)
 
 			// Create && update backup record for this diff backup
-			const [ backupSize, sizeError ] = await this._getTotalByteLengthOfBackup(fChanged)
+			const [ backupSize, sizeError ] = this._getTotalByteLengthOfBackup(fChanged)
 			if (sizeError) {
 				throw new BackupException(`Failed to calculate backup size. Reason: ${sizeError.message}`)
 			}
