@@ -20,14 +20,14 @@ export async function restoreBackup(ref: string, dest: string, full = false): Pr
 		log(`Reference backup was not presented as UUID ... attempting to translate to UUID from presumed name ...`)
 
 		// Translate ref name to an ID to use
-		const [ latest, err ] = getLatestBackupByName(ref, full ? BackupType.FULL : BackupType.DIFF)
+		const [ latest, err ] = getLatestBackupByName(ref, full ? BackupType.FULL : null)
 		if (err) {
 			log(`Failed to translate backup for backup reference, ${ref} ... Reason: ${err.message}`)
 			process.exit(2)
 		}
 
 		refId = latest.id
-		log(`Translation complete. NAME (${ref}) > UUID (${refId})`)
+		log(`Translation complete. NAME (${latest.name}) > UUID (${refId})`)
 	}
 
 	// Loading indicator (UI)

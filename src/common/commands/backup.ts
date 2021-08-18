@@ -83,7 +83,7 @@ export async function differentialBackup(
 			}
 
 			refId = latestFull.id
-			log(`Translation complete. NAME (${ref}) > UUID (${refId})`)
+			log(`Translation complete. NAME (${latestFull.name}) > UUID (${refId})`)
 		}
 
 		// Perform the backup and return

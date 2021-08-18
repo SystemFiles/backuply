@@ -54,7 +54,7 @@ export class DatabaseManager {
 			let filtered = data.filter((r) => r.name.match(name))
 
 			if (backupType) {
-				filtered = filtered.filter((r) => r.type === backupType.toString())
+				filtered = filtered.filter((r) => r.type === backupType)
 			}
 
 			return [ filtered, null ]
